@@ -11,6 +11,8 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
+import RequireAuth from "../components/auth/RequireAuth";
+import MerchantDashboardPage from "../pages/MerchantDashboardPage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
   return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
@@ -27,6 +29,7 @@ export default function AppRouter() {
   <Route path="/register" element={<RegisterPage/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/account" element={<AccountPage/>}/>
+  <Route path="/merchant/*" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
   <Route path="/cart" element={<CartPage/>}/>
   <Route path="/checkout" element={<InfoPage title="Checkout" description="Checkout will be enabled only after order validation, delivery options, and payment handling are implemented."/>}/>
