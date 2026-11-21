@@ -5,7 +5,8 @@ import { formatCurrency } from "../../utils/formatCurrency";
 import Badge from "../ui/Badge";
 import { useCart } from "../../contexts/CartContext";
 
-export default function ProductCard({ product }: { product: Product }) {\n  const { addItem } = useCart();
+export default function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
   const Icon = product.category === "Motorcycle parts" ? Bike : product.category === "Workshop" ? Wrench : CarFront;
   return <article className="product-card">
     <Link to={`/products/${product.id}`} className="catalog-card-link" aria-label={`View ${product.name}`}>
