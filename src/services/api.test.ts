@@ -10,7 +10,7 @@ describe("apiRequest",()=>{
  });
  it("normalizes API errors",async()=>{
   vi.stubGlobal("fetch",vi.fn().mockResolvedValue(new Response(JSON.stringify({error:{code:"BAD_INPUT",message:"Invalid value"}}),{status:422})));
-  await expect(apiRequest("/test")).rejects.toMatchObject<ApiRequestError>({status:422,code:"BAD_INPUT",message:"Invalid value"});
+  await expect(apiRequest("/test")).rejects.toMatchObject({status:422,code:"BAD_INPUT",message:"Invalid value"});
  });
  it("provides a useful message when offline",async()=>{
   vi.stubGlobal("fetch",vi.fn().mockRejectedValue(new Error("offline")));
