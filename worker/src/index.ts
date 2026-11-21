@@ -48,6 +48,49 @@ async function handle(request:Request,env:Env):Promise<Response>{
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
 
 
+
+ if(url.pathname==="/api/orders"&&request.method==="GET"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view your orders.");
+  const result=await env.DB.prepare("SELECT o.*,m.store_name FROM orders o JOIN merchant_profiles m ON m.id=o.merchant_id WHERE o.customer_id=? ORDER BY o.created_at DESC LIMIT 100").bind(user.id).all<any>();
+  return json({data:{items:result.results||[]}});
+ }
+ if(url.pathname==="/api/orders"&&request.method==="POST"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in before placing an order.");if(user.status!=="active")return fail(403,"ACCOUNT_NOT_ACTIVE","Your account cannot place orders yet.");
+  let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+  const recipientName=String(body.recipientName||"").trim(),recipientPhone=String(body.recipientPhone||"").trim(),addressLine=String(body.addressLine||"").trim(),city=String(body.city||"").trim(),area=String(body.area||"").trim(),notes=String(body.notes||"").trim();
+  if(recipientName.length<2||recipientName.length>90||recipientPhone.length<7||recipientPhone.length>30||addressLine.length<5||addressLine.length>250||city.length<2||city.length>80||area.length>100||notes.length>500)return fail(422,"INVALID_ADDRESS","Complete the delivery contact and address details.");
+  if(body.paymentMethod&&body.paymentMethod!=="cash_on_delivery")return fail(422,"PAYMENT_METHOD_UNAVAILABLE","Cash on delivery is the only payment method enabled in this preview.");
+  if(!Array.isArray(body.items)||body.items.length<1||body.items.length>30)return fail(422,"INVALID_CART","Your cart is empty or contains too many items.");
+  const quantities=new Map<string,number>();for(const entry of body.items){const id=String(entry.productId||""),qty=Number(entry.quantity);if(!id||!Number.isSafeInteger(qty)||qty<1||qty>99)return fail(422,"INVALID_CART_ITEM","Check the product and quantity in your cart.");quantities.set(id,(quantities.get(id)||0)+qty);}
+  const groups=new Map<string,{merchantId:string;items:Array<{id:string;name:string;sku:string|null;price:number;quantity:number}>;subtotal:number}>();
+  for(const [productId,quantity] of quantities){
+   const product=await env.DB.prepare("SELECT p.*,m.id AS active_merchant_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(productId).first<any>();
+   if(!product)return fail(409,"PRODUCT_UNAVAILABLE","One of the selected products is no longer available.");
+   if(product.stock_quantity<quantity)return fail(409,"INSUFFICIENT_STOCK",`Not enough stock for ${product.name}. Please update your cart.`);
+   const group=groups.get(product.merchant_id)||{merchantId:product.merchant_id,items:[],subtotal:0};
+   group.items.push({id:product.id,name:product.name,sku:product.sku,price:product.price_piasters,quantity});group.subtotal+=product.price_piasters*quantity;groups.set(product.merchant_id,group);
+  }
+  const created:Array<{id:string;orderNumber:string;totalPiasters:number}>=[];
+  for(const group of groups.values()){
+   const id=crypto.randomUUID(),orderNumber="PH"+new Date().toISOString().slice(2,10).replace(/-/g,"")+randomToken(3).slice(0,6).toUpperCase();
+   const statements=[env.DB.prepare("INSERT INTO orders(id,order_number,customer_id,merchant_id,subtotal_piasters,total_piasters,recipient_name,recipient_phone,address_line,city,area,notes) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)").bind(id,orderNumber,user.id,group.merchantId,group.subtotal,group.subtotal,recipientName,recipientPhone,addressLine,city,area,notes)];
+   for(const item of group.items)statements.push(env.DB.prepare("INSERT INTO order_items(id,order_id,product_id,product_name,sku,unit_price_piasters,quantity,line_total_piasters) VALUES(?,?,?,?,?,?,?,?)").bind(crypto.randomUUID(),id,item.id,item.name,item.sku,item.price,item.quantity,item.price*item.quantity));
+   await env.DB.batch(statements);created.push({id,orderNumber,totalPiasters:group.subtotal});
+  }
+  return json({data:{orders:created}},201);
+ }
+ if(url.pathname.startsWith("/api/orders/")){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
+  const segments=url.pathname.split("/").filter(Boolean),id=segments[2];
+  if(segments.length===3&&request.method==="GET"){
+   const order=await env.DB.prepare("SELECT o.*,m.store_name FROM orders o JOIN merchant_profiles m ON m.id=o.merchant_id WHERE o.id=? AND o.customer_id=?").bind(id,user.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
+   const items=await env.DB.prepare("SELECT product_id,product_name,sku,unit_price_piasters,quantity,line_total_piasters FROM order_items WHERE order_id=?").bind(id).all<any>();return json({data:{order,items:items.results||[]}});
+  }
+  if(segments.length===4&&segments[3]==="cancel"&&request.method==="POST"){
+   const result=await env.DB.prepare("UPDATE orders SET status='cancelled',updated_at=? WHERE id=? AND customer_id=? AND status='pending'").bind(new Date().toISOString(),id,user.id).run();
+   return result.meta.changes?json({data:{success:true}}):fail(409,"ORDER_CANNOT_CANCEL","This order can no longer be cancelled.");
+  }
+ }
  if(url.pathname.startsWith("/api/admin/")){
   const admin=await readUser(request,env);if(!admin)return fail(401,"UNAUTHENTICATED","Sign in to continue.");if(admin.role!=="admin"||admin.status!=="active")return fail(403,"ADMIN_ONLY","Administrator access is required.");
   if(url.pathname==="/api/admin/overview"&&request.method==="GET"){
@@ -99,6 +142,24 @@ async function handle(request:Request,env:Env):Promise<Response>{
    if(storeName.length<2||storeName.length>100||description.length>1000||(phone&&phone.length>30))return fail(422,"INVALID_PROFILE","Check your store name, description, and phone.");
    await env.DB.prepare("UPDATE merchant_profiles SET store_name=?,description=?,contact_phone=?,updated_at=? WHERE id=?").bind(storeName,description,phone,new Date().toISOString(),merchant.id).run();
    return json({data:{success:true}});
+  }
+
+  if(url.pathname==="/api/merchant/orders"&&request.method==="GET"){
+   const rows=await env.DB.prepare("SELECT o.*,u.full_name AS customer_name FROM orders o JOIN users u ON u.id=o.customer_id WHERE o.merchant_id=? ORDER BY o.created_at DESC LIMIT 100").bind(merchant.id).all<any>();return json({data:{items:rows.results||[]}});
+  }
+  const orderSegments=url.pathname.split("/").filter(Boolean);
+  if(orderSegments.length===4&&orderSegments[0]==="api"&&orderSegments[1]==="merchant"&&orderSegments[2]==="orders"&&request.method==="POST"){
+   const orderId=orderSegments[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const next=String(body.status||"");if(!["accepted","rejected","processing","shipped","delivered"].includes(next))return fail(422,"INVALID_ORDER_STATUS","Choose a valid order status.");
+   const order=await env.DB.prepare("SELECT * FROM orders WHERE id=? AND merchant_id=?").bind(orderId,merchant.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
+   const allowed:Record<string,string[]>={pending:["accepted","rejected"],accepted:["processing"],processing:["shipped"],shipped:["delivered"]};if(!allowed[order.status]?.includes(next))return fail(409,"INVALID_ORDER_TRANSITION","This order cannot move to that status.");
+   if(next==="accepted"){
+    const items=await env.DB.prepare("SELECT product_id,quantity FROM order_items WHERE order_id=?").bind(orderId).all<any>();const changed:Array<{id:string;quantity:number}>=[];
+    for(const item of items.results||[]){const result=await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity-?,updated_at=? WHERE id=? AND stock_quantity>=? AND status='active'").bind(item.quantity,new Date().toISOString(),item.product_id,item.quantity).run();if(!result.meta.changes){for(const previous of changed)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(previous.quantity,previous.id).run();return fail(409,"INSUFFICIENT_STOCK","Stock changed before this order could be accepted.");}changed.push({id:item.product_id,quantity:item.quantity});}
+   }
+   const result=await env.DB.prepare("UPDATE orders SET status=?,updated_at=? WHERE id=? AND merchant_id=? AND status=?").bind(next,new Date().toISOString(),orderId,merchant.id,order.status).run();
+   if(!result.meta.changes)return fail(409,"ORDER_UPDATED","This order was updated by another request. Refresh and try again.");
+   return json({data:{success:true,status:next}});
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
    const rows=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
