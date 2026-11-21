@@ -19,6 +19,8 @@ import AdminMerchantsPage from "../pages/AdminMerchantsPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
 import AdminUsersPage from "../pages/AdminUsersPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
+import AdminSupportPage from "../pages/AdminSupportPage";
+import SupportPage from "../pages/SupportPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
@@ -46,6 +48,7 @@ export default function AppRouter() {
   <Route path="/admin/products" element={<RequireAuth roles={["admin"]}><AdminProductsPage/></RequireAuth>}/>
   <Route path="/admin/users" element={<RequireAuth roles={["admin"]}><AdminUsersPage/></RequireAuth>}/>
   <Route path="/admin/orders" element={<RequireAuth roles={["admin"]}><AdminOrdersPage/></RequireAuth>}/>
+  <Route path="/admin/support" element={<RequireAuth roles={["admin"]}><AdminSupportPage/></RequireAuth>}/>
   <Route path="/merchant/products" element={<RequireAuth roles={["merchant"]}><MerchantProductsPage/></RequireAuth>}/>
   <Route path="/merchant/orders" element={<RequireAuth roles={["merchant"]}><MerchantOrdersPage/></RequireAuth>}/>
   <Route path="/merchant/profile" element={<RequireAuth roles={["merchant"]}><MerchantProfilePage/></RequireAuth>}/>
@@ -54,7 +57,7 @@ export default function AppRouter() {
   <Route path="/checkout" element={<RequireAuth><CheckoutPage/></RequireAuth>}/>
   <Route path="/orders" element={<RequireAuth><OrdersPage/></RequireAuth>}/>
   <Route path="/orders/:id" element={<RequireAuth><OrderDetailsPage/></RequireAuth>}/>
-  <Route path="/support" element={<InfoPage title="How can we help?" description="Support resources and request handling are planned for the next marketplace stage."/>}/>
+  <Route path="/support" element={<RequireAuth><SupportPage/></RequireAuth>}/>
   <Route path="*" element={<MainLayout><NotFoundPage/></MainLayout>}/>
  </Routes>;
 }

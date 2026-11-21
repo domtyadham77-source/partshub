@@ -14,6 +14,7 @@ import "./styles/cart.css";
 import "./styles/favorites.css";
 import "./styles/merchant.css";
 import "./styles/orders.css";
+import "./styles/support.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode><BrowserRouter><AuthProvider><CartProvider><FavoritesProvider><AppRouter /></FavoritesProvider></CartProvider></AuthProvider></BrowserRouter></React.StrictMode>
