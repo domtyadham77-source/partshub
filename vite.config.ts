@@ -8,7 +8,6 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
-    css: true,
-    include: ["src/contexts/CartContext.test.tsx"]
+    css: true
   }
 });
