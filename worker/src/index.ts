@@ -41,6 +41,10 @@ async function handle(request:Request,env:Env):Promise<Response>{
   if(!allowed)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
   return new Response(row.image_data,{status:200,headers:{"Content-Type":row.content_type,"Cache-Control":isPublic?"public, max-age=3600":"private, no-store","X-Content-Type-Options":"nosniff"}});
  }
+ if(url.pathname==="/api/workshops"&&request.method==="GET"){
+  const city=(url.searchParams.get("city")||"").trim().slice(0,80),type=url.searchParams.get("type")||"";const types=["garage","maintenance_center","motorcycle_workshop"];if(type&&!types.includes(type))return fail(400,"INVALID_WORKSHOP_TYPE","Choose a valid provider type.");
+  let sql="SELECT m.id,m.store_name,m.description,m.contact_phone,m.business_type,m.city,m.area,m.address_line FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status='active' AND u.status='active' AND m.business_type IN ('garage','maintenance_center','motorcycle_workshop')";const values:string[]=[];if(city){sql+=" AND m.city LIKE ?";values.push("%"+city+"%");}if(type){sql+=" AND m.business_type=?";values.push(type);}sql+=" ORDER BY m.store_name ASC LIMIT 100";const rows=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:rows.results||[]}});
+ }
  if(url.pathname==="/api/products"&&request.method==="GET"){
   const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
   if(category&&!["car_parts","motorcycle_parts","workshop"].includes(category))return fail(400,"INVALID_CATEGORY","Choose a valid product category.");
@@ -210,12 +214,12 @@ async function handle(request:Request,env:Env):Promise<Response>{
   const context=await merchantFor(request,env,isProfile&&(request.method==="GET"||request.method==="PATCH"));
   if(context.error)return context.error;
   const merchant=context.merchant;
-  if(isProfile&&request.method==="GET")return json({data:{merchant:{id:merchant.id,storeName:merchant.store_name,description:merchant.description,contactPhone:merchant.contact_phone,status:merchant.status}}});
+  if(isProfile&&request.method==="GET")return json({data:{merchant:{id:merchant.id,storeName:merchant.store_name,description:merchant.description,contactPhone:merchant.contact_phone,status:merchant.status,businessType:merchant.business_type,city:merchant.city,area:merchant.area,addressLine:merchant.address_line}}});
   if(isProfile&&request.method==="PATCH"){
    let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const storeName=String(body.storeName??merchant.store_name).trim(),description=String(body.description??merchant.description).trim(),phone=String(body.contactPhone??merchant.contact_phone??"").trim()||null;
-   if(storeName.length<2||storeName.length>100||description.length>1000||(phone&&phone.length>30))return fail(422,"INVALID_PROFILE","Check your store name, description, and phone.");
-   await env.DB.prepare("UPDATE merchant_profiles SET store_name=?,description=?,contact_phone=?,updated_at=? WHERE id=?").bind(storeName,description,phone,new Date().toISOString(),merchant.id).run();
+   const storeName=String(body.storeName??merchant.store_name).trim(),description=String(body.description??merchant.description).trim(),phone=String(body.contactPhone??merchant.contact_phone??"").trim()||null,businessType=String(body.businessType??merchant.business_type),city=String(body.city??merchant.city).trim(),area=String(body.area??merchant.area).trim(),addressLine=String(body.addressLine??merchant.address_line).trim();
+   if(storeName.length<2||storeName.length>100||description.length>1000||(phone&&phone.length>30)||!["parts_store","garage","maintenance_center","motorcycle_workshop"].includes(businessType)||city.length>80||area.length>100||addressLine.length>250)return fail(422,"INVALID_PROFILE","Check your store name, business type, description, and address.");
+   await env.DB.prepare("UPDATE merchant_profiles SET store_name=?,description=?,contact_phone=?,business_type=?,city=?,area=?,address_line=?,updated_at=? WHERE id=?").bind(storeName,description,phone,businessType,city,area,addressLine,new Date().toISOString(),merchant.id).run();
    return json({data:{success:true}});
   }
 
@@ -280,14 +284,15 @@ async function handle(request:Request,env:Env):Promise<Response>{
  let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
  if(url.pathname==="/api/auth/register"){
   if(!await allowAuthAttempt(request,env,"register",6))return fail(429,"RATE_LIMITED","Too many sign-up attempts. Try again later.");
-  const fullName=String(body.fullName||"").trim(),email=String(body.email||"").trim().toLowerCase(),phone=String(body.phone||"").trim()||null,password=String(body.password||""),role=body.role==="merchant"?"merchant":"customer";
+  const fullName=String(body.fullName||"").trim(),email=String(body.email||"").trim().toLowerCase(),phone=String(body.phone||"").trim()||null,password=String(body.password||""),role=body.role==="merchant"?"merchant":"customer",businessType=String(body.businessType||"parts_store");
+  if(role==="merchant"&&!["parts_store","garage","maintenance_center","motorcycle_workshop"].includes(businessType))return fail(422,"INVALID_BUSINESS_TYPE","Choose a valid seller business type.");
   if(fullName.length<2||fullName.length>90)return fail(422,"INVALID_NAME","Enter your full name.");
   if(!validEmail(email))return fail(422,"INVALID_EMAIL","Enter a valid email address.");
   if(phone&&phone.length>30)return fail(422,"INVALID_PHONE","Enter a valid phone number.");
   if(password.length<10||password.length>128)return fail(422,"WEAK_PASSWORD","Password must be at least 10 characters.");
   const existing=await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();if(existing)return fail(409,"EMAIL_EXISTS","An account with this email already exists.");
   const id=crypto.randomUUID(),salt=randomToken(16),hash=await passwordHash(password,salt);
-  try{const statements=[env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)").bind(id,fullName,email,phone,role,role==="merchant"?"pending":"active",hash,salt)];if(role==="merchant")statements.push(env.DB.prepare("INSERT INTO merchant_profiles(id,user_id,store_name,status) VALUES(?,?,?,?)").bind(crypto.randomUUID(),id,fullName,"pending"));await env.DB.batch(statements);}catch{return fail(409,"EMAIL_EXISTS","An account with this email already exists.");}
+  try{const statements=[env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)").bind(id,fullName,email,phone,role,role==="merchant"?"pending":"active",hash,salt)];if(role==="merchant")statements.push(env.DB.prepare("INSERT INTO merchant_profiles(id,user_id,store_name,status,business_type) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(),id,fullName,"pending",businessType));await env.DB.batch(statements);}catch{return fail(409,"EMAIL_EXISTS","An account with this email already exists.");}
   const session=await createSession(id,env);const row=await env.DB.prepare("SELECT * FROM users WHERE id=?").bind(id).first<any>();const maxAge=Math.floor((new Date(session.expires).getTime()-Date.now())/1000);
   return json({data:{user:publicUser(row)}},201,{"Set-Cookie":cookie(session.token,maxAge)});
  }
