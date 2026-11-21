@@ -92,6 +92,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   }
  }
  if(url.pathname.startsWith("/api/admin/")){
+  const merchantParts=url.pathname.split("/").filter(Boolean);
   const admin=await readUser(request,env);if(!admin)return fail(401,"UNAUTHENTICATED","Sign in to continue.");if(admin.role!=="admin"||admin.status!=="active")return fail(403,"ADMIN_ONLY","Administrator access is required.");
   if(url.pathname==="/api/admin/overview"&&request.method==="GET"){
    const [users,merchants,products]=await Promise.all([
@@ -134,7 +135,6 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const result=await env.DB.prepare("SELECT m.id,m.store_name,m.description,m.contact_phone,m.status,m.created_at,u.full_name,u.email FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status=? ORDER BY m.created_at ASC LIMIT 100").bind(status).all<any>();
    return json({data:{items:result.results||[]}});
   }
-  const merchantParts=url.pathname.split("/").filter(Boolean);
   if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="merchants"&&merchantParts[4]==="status"&&request.method==="POST"){
    const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
    const status=String(body.status||"");if(!["active","rejected","suspended"].includes(status))return fail(422,"INVALID_STATUS","Choose active, rejected, or suspended.");
