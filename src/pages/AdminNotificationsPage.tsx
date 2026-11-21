@@ -1,0 +1,17 @@
+import { useEffect,useState,type FormEvent } from "react";
+import MainLayout from "../components/layout/MainLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import { adminService } from "../services/admin";
+import { notificationsService } from "../services/notifications";
+import type { AppNotification } from "../types/notification";
+type User={id:string;full_name:string;email:string};
+type Log=AppNotification&{full_name:string;email:string};
+export default function AdminNotificationsPage(){
+ const [users,setUsers]=useState<User[]>([]);const [logs,setLogs]=useState<Log[]>([]);const [userId,setUserId]=useState("");const [title,setTitle]=useState("");const [message,setMessage]=useState("");const [type,setType]=useState<"info"|"success"|"warning">("info");const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [success,setSuccess]=useState("");
+ async function load(){try{const [u,n]=await Promise.all([adminService.users(""),notificationsService.adminList()]);setUsers(u.items.filter(item=>item.status==="active"));setLogs(n.items);if(!userId&&u.items.length)setUserId(u.items[0].id)}catch(err){setError(err instanceof Error?err.message:"Unable to load notification data.")}}
+ useEffect(()=>{void load()},[]);
+ async function submit(e:FormEvent){e.preventDefault();setBusy(true);setError("");setSuccess("");try{await notificationsService.send({userId,title:title.trim(),message:message.trim(),type});setSuccess("Notification sent and added to the admin log.");setTitle("");setMessage("");await load()}catch(err){setError(err instanceof Error?err.message:"Unable to send notification.")}finally{setBusy(false)}}
+ return <MainLayout><section className="admin-dashboard"><span className="eyebrow">DIRECT COMMUNICATION</span><h1>Send a notification.</h1><p>Send a custom in-app update to one active account.</p><form className="support-form" onSubmit={submit}><div className="ph-field"><label htmlFor="notify-user">Recipient</label><select id="notify-user" className="ph-input" required value={userId} onChange={e=>setUserId(e.target.value)}><option value="" disabled>Select an account</option>{users.map(user=><option key={user.id} value={user.id}>{user.full_name} · {user.email}</option>)}</select></div><Input label="Title" name="notification-title" minLength={2} maxLength={100} required value={title} onChange={e=>setTitle(e.target.value)}/><div className="ph-field"><label htmlFor="notify-type">Type</label><select id="notify-type" className="ph-input" value={type} onChange={e=>setType(e.target.value as typeof type)}><option value="info">Information</option><option value="success">Success</option><option value="warning">Warning</option></select></div><div className="ph-field"><label htmlFor="notify-message">Message</label><textarea id="notify-message" className="ph-input" rows={4} minLength={3} maxLength={1000} required value={message} onChange={e=>setMessage(e.target.value)}/></div>{error&&<div className="auth-error">{error}</div>}{success&&<div className="auth-success">{success}</div>}<Button type="submit" disabled={busy||!users.length}>{busy?"Sending…":"Send notification"}</Button></form><h2>Recent notifications</h2><div className="notification-list">{logs.map(item=><article key={item.id}><div><Badge>{item.type}</Badge><h3>{item.title}</h3><p>{item.message}</p><small>To {item.full_name} · {item.email} · {new Date(item.created_at).toLocaleString()}</small></div></article>)}</div></section></MainLayout>;
+}

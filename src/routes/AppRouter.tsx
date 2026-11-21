@@ -21,6 +21,8 @@ import AdminUsersPage from "../pages/AdminUsersPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
 import AdminSupportPage from "../pages/AdminSupportPage";
 import SupportPage from "../pages/SupportPage";
+import NotificationsPage from "../pages/NotificationsPage";
+import AdminNotificationsPage from "../pages/AdminNotificationsPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
@@ -49,9 +51,11 @@ export default function AppRouter() {
   <Route path="/admin/users" element={<RequireAuth roles={["admin"]}><AdminUsersPage/></RequireAuth>}/>
   <Route path="/admin/orders" element={<RequireAuth roles={["admin"]}><AdminOrdersPage/></RequireAuth>}/>
   <Route path="/admin/support" element={<RequireAuth roles={["admin"]}><AdminSupportPage/></RequireAuth>}/>
+  <Route path="/admin/notifications" element={<RequireAuth roles={["admin"]}><AdminNotificationsPage/></RequireAuth>}/>
   <Route path="/merchant/products" element={<RequireAuth roles={["merchant"]}><MerchantProductsPage/></RequireAuth>}/>
   <Route path="/merchant/orders" element={<RequireAuth roles={["merchant"]}><MerchantOrdersPage/></RequireAuth>}/>
   <Route path="/merchant/profile" element={<RequireAuth roles={["merchant"]}><MerchantProfilePage/></RequireAuth>}/>
+  <Route path="/notifications" element={<RequireAuth><NotificationsPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
   <Route path="/cart" element={<CartPage/>}/>
   <Route path="/checkout" element={<RequireAuth><CheckoutPage/></RequireAuth>}/>
