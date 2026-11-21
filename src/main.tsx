@@ -1,4 +1,4 @@
-import React from "react";
+/// <reference types="vite/client" />\nimport React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import AppRouter from "./routes/AppRouter";
