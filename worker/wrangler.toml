@@ -1,1 +1,13 @@
+name = "parts-hub-preview-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-21"
 
+[vars]
+ALLOWED_ORIGIN = "https://partshub-preview.pages.dev"
+SESSION_TTL_DAYS = "14"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "parts-hub-preview"
+database_id = "REPLACE_WITH_PREVIEW_D1_DATABASE_ID"
+migrations_dir = "migrations"
