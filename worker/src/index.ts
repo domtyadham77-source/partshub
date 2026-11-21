@@ -11,6 +11,15 @@ async function digest(value:string){return hex(await crypto.subtle.digest("SHA-2
 async function passwordHash(password:string,salt:string,iterations=310000){const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:Uint8Array.from(salt.match(/.{2}/g)!.map(x=>parseInt(x,16))),iterations,hash:"SHA-256"},key,256);return hex(bits);}
 function validEmail(value:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)&&value.length<=254;}
 function publicUser(row:any):PublicUser{return{id:row.id,fullName:row.full_name,email:row.email,phone:row.phone,role:row.role,status:row.status,createdAt:row.created_at};}
+async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:number,windowSeconds=900){
+ const ip=request.headers.get("CF-Connecting-IP")||"unknown";
+ const key=await digest(scope+":"+ip);
+ const since=new Date(Date.now()-windowSeconds*1000).toISOString();
+ const row=await env.DB.prepare("SELECT COUNT(*) AS total FROM auth_attempts WHERE key_hash=? AND created_at>?").bind(key,since).first<{total:number}>();
+ await env.DB.prepare("INSERT INTO auth_attempts(id,key_hash) VALUES(?,?)").bind(crypto.randomUUID(),key).run();
+ await env.DB.prepare("DELETE FROM auth_attempts WHERE created_at<?").bind(new Date(Date.now()-86400000).toISOString()).run();
+ return (row?.total||0)<limit;
+}
 async function readUser(request:Request,env:Env){const token=cookieValue(request,"ph_session");if(!token)return null;const hash=await digest(token);const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(hash,new Date().toISOString()).first<any>();return row?publicUser(row):null;}
 async function createSession(userId:string,env:Env){const token=randomToken();const days=Math.min(30,Math.max(1,Number(env.SESSION_TTL_DAYS)||14));const expires=new Date(Date.now()+days*86400000).toISOString();await env.DB.prepare("INSERT INTO sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)").bind(crypto.randomUUID(),userId,await digest(token),expires).run();return {token,expires};}
 function cookie(token:string,maxAge:number){return `ph_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;}
@@ -25,6 +34,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
  if(request.method!=="POST")return fail(405,"METHOD_NOT_ALLOWED","Method not allowed.");
  let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
  if(url.pathname==="/api/auth/register"){
+  if(!await allowAuthAttempt(request,env,"register",6))return fail(429,"RATE_LIMITED","Too many sign-up attempts. Try again later.");
   const fullName=String(body.fullName||"").trim(),email=String(body.email||"").trim().toLowerCase(),phone=String(body.phone||"").trim()||null,password=String(body.password||""),role=body.role==="merchant"?"merchant":"customer";
   if(fullName.length<2||fullName.length>90)return fail(422,"INVALID_NAME","Enter your full name.");
   if(!validEmail(email))return fail(422,"INVALID_EMAIL","Enter a valid email address.");
@@ -37,6 +47,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   return json({data:{user:publicUser(row)}},201,{"Set-Cookie":cookie(session.token,maxAge)});
  }
  if(url.pathname==="/api/auth/login"){
+  if(!await allowAuthAttempt(request,env,"login",8))return fail(429,"RATE_LIMITED","Too many sign-in attempts. Try again in 15 minutes.");
   const email=String(body.email||"").trim().toLowerCase(),password=String(body.password||"");if(!validEmail(email)||!password)return fail(422,"INVALID_CREDENTIALS","Enter your email and password.");
   const row=await env.DB.prepare("SELECT * FROM users WHERE email=?").bind(email).first<any>();if(!row)return fail(401,"INVALID_CREDENTIALS","Email or password is incorrect.");
   const candidate=await passwordHash(password,row.password_salt,row.password_iterations);if(candidate!==row.password_hash)return fail(401,"INVALID_CREDENTIALS","Email or password is incorrect.");
