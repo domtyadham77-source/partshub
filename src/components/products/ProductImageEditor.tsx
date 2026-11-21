@@ -10,9 +10,9 @@ async function cropImage(src:string,crop:Area,rotation:number):Promise<Blob>{
  const bounds=rotatedSize(image.width,image.height,rotation);const canvas=document.createElement("canvas");canvas.width=Math.round(bounds.width);canvas.height=Math.round(bounds.height);
  const context=canvas.getContext("2d");if(!context)throw new Error("Image editing is not supported in this browser.");
  context.translate(canvas.width/2,canvas.height/2);context.rotate(rotation*Math.PI/180);context.drawImage(image,-image.width/2,-image.height/2);
- const output=document.createElement("canvas");output.width=Math.round(crop.width);output.height=Math.round(crop.height);const outputContext=output.getContext("2d");if(!outputContext)throw new Error("Unable to create the cropped image.");
+ const output=document.createElement("canvas");const scale=Math.min(1,1200/Math.max(crop.width,crop.height));output.width=Math.round(crop.width*scale);output.height=Math.round(crop.height*scale);const outputContext=output.getContext("2d");if(!outputContext)throw new Error("Unable to create the cropped image.");
  outputContext.drawImage(canvas,crop.x,crop.y,crop.width,crop.height,0,0,output.width,output.height);
- return await new Promise<Blob>((resolve,reject)=>output.toBlob(blob=>blob?resolve(blob):reject(new Error("Unable to export the edited image.")),"image/jpeg",0.92));
+ return await new Promise<Blob>((resolve,reject)=>output.toBlob(blob=>blob?resolve(blob):reject(new Error("Unable to export the edited image.")),"image/jpeg",0.8));
 }
 export default function ProductImageEditor({imageSrc,onCancel,onSave}:Props){
  const [crop,setCrop]=useState({x:0,y:0});const [zoom,setZoom]=useState(1);const [rotation,setRotation]=useState(0);const [area,setArea]=useState<Area|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState("");
