@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "./contexts/CartContext";
+import { useAuth } from "./contexts/AuthContext";
+import { UserRound, Heart } from "lucide-react";
 import { products as catalogProducts } from "./data/products";
 import { Search, ShoppingCart, SlidersHorizontal, Wrench, Bike, CarFront, ArrowUpRight, ShieldCheck, Truck, Headphones } from "lucide-react";
 
@@ -22,6 +24,7 @@ export default function App() {
   const [category, setCategory] = useState<Category>("All");
   const [query, setQuery] = useState("");
   const { count: cartCount, addItem } = useCart();
+  const { user, loading: authLoading } = useAuth();
   const visible = useMemo(() => products.filter((item) =>
     (category === "All" || item.category === category) &&
     (item.name + item.fitment + item.seller).toLowerCase().includes(query.toLowerCase())
@@ -33,7 +36,7 @@ export default function App() {
       <nav className="desktop-nav" aria-label="Main navigation">
         <a className="active" href="#parts">Explore parts</a><a href="#categories">Categories</a><a href="#workshops">Workshops</a><a href="#sell">Sell with us</a>
       </nav>
-      <Link className="cart-button" to="/cart" aria-label={`Shopping cart, ${cartCount} items`}><ShoppingCart size={19}/><span>Cart</span><b>{cartCount}</b></Link>
+      <div className="home-header-actions"><Link className="cart-button" to="/favorites" aria-label="Saved parts"><Heart size={17}/></Link>{!authLoading&&<Link className="account-button" to={user?"/account":"/login"}><UserRound size={16}/><span>{user?"Account":"Sign in"}</span></Link>}<Link className="cart-button" to="/cart" aria-label={`Shopping cart, ${cartCount} items`}><ShoppingCart size={19}/><span>Cart</span><b>{cartCount}</b></Link></div>
     </header>
 
     <main>
