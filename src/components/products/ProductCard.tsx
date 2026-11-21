@@ -11,8 +11,9 @@ export default function ProductCard({ product }: { product: Product }) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const Icon = product.category === "Motorcycle parts" ? Bike : product.category === "Workshop" ? Wrench : CarFront;
   return <article className="product-card">
+    <button className={`favorite-toggle ${isFavorite(product.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(product.id)} aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}><Heart size={17} fill={isFavorite(product.id) ? "currentColor" : "none"}/></button>
     <Link to={`/products/${product.id}`} className="catalog-card-link" aria-label={`View ${product.name}`}>
-      <div className="product-visual"><button className={`favorite-toggle ${isFavorite(product.id) ? "is-favorite" : ""}`} onClick={(event) => { event.preventDefault(); toggleFavorite(product.id); }} aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}><Heart size={17} fill={isFavorite(product.id) ? "currentColor" : "none"}/></button><Icon size={62} strokeWidth={1}/>{product.tag && <span className="product-tag">{product.tag}</span>}<span className="visual-code">{product.id.toUpperCase()}</span></div>
+      <div className="product-visual"><Icon size={62} strokeWidth={1}/>{product.tag && <span className="product-tag">{product.tag}</span>}<span className="visual-code">{product.id.toUpperCase()}</span></div>
       <div className="product-info"><span className="product-category">{product.category}</span><h3>{product.name}</h3><p>{product.fitment}</p></div>
     </Link>
     <div className="product-info product-card-bottom"><div className="seller-line"><span>{product.seller}</span><span><Star size={12} fill="currentColor"/> {product.rating.toFixed(1)}</span></div><div className="product-bottom"><b>{formatCurrency(product.price)}</b><button onClick={() => addItem(product)} aria-label={`Add ${product.name} to cart`} disabled={product.stockStatus === "out-of-stock"}><Plus size={19}/></button></div>{product.stockStatus === "out-of-stock" && <Badge tone="neutral">Out of stock</Badge>}</div>
