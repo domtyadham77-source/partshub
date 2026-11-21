@@ -6,7 +6,7 @@ export type Product = {
   fitment: string;
   price: number;
   seller: string;
-  rating: number;
+  rating?: number;
   description: string;
   stockStatus: "in-stock" | "limited" | "out-of-stock";
   tag?: string;
