@@ -1,4 +1,4 @@
-import { ShieldCheck,Wallet,Mail,Image,Database } from "lucide-react";
+import { Wallet,Mail,Image,Database } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import Badge from "../components/ui/Badge";
 const items=[{title:"Currency",value:"EGP · Egyptian Pound",detail:"Prices are stored in piasters (1 EGP = 100 piasters).",icon:Wallet,status:"Configured"},{title:"Payment methods",value:"Cash on delivery only",detail:"Card and wallet payments need a selected payment provider and verified credentials.",icon:Wallet,status:"Limited"},{title:"Account recovery",value:"Email delivery not configured",detail:"Password recovery is disabled until a verified email provider is connected.",icon:Mail,status:"Not configured"},{title:"Product images",value:"D1 image storage",detail:"One JPG, PNG or WebP image per product, maximum 1 MB. No R2 bucket is used.",icon:Image,status:"Configured"},{title:"Database",value:"Preview D1 binding · DB",detail:"The Preview database must be connected in Cloudflare Pages settings. Production must use a separate D1 database.",icon:Database,status:"Manual setup"}];
