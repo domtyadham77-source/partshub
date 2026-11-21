@@ -101,6 +101,29 @@ async function handle(request:Request,env:Env):Promise<Response>{
    ]);
    return json({data:{users:users?.total||0,pendingMerchants:merchants?.total||0,products:products?.total||0}});
   }
+
+  if(url.pathname==="/api/admin/users"&&request.method==="GET"){
+   const q=(url.searchParams.get("q")||"").trim().slice(0,80),role=url.searchParams.get("role")||"";
+   let sql="SELECT id,full_name,email,phone,role,status,created_at FROM users WHERE 1=1";const values:string[]=[];
+   if(role&&["customer","merchant","admin"].includes(role)){sql+=" AND role=?";values.push(role);}
+   if(q){sql+=" AND (full_name LIKE ? OR email LIKE ?)";values.push("%"+q+"%","%"+q+"%");}
+   sql+=" ORDER BY created_at DESC LIMIT 100";const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:result.results||[]}});
+  }
+  if(url.pathname==="/api/admin/orders"&&request.method==="GET"){
+   const status=url.searchParams.get("status")||"";let sql="SELECT o.*,u.full_name AS customer_name,m.store_name FROM orders o JOIN users u ON u.id=o.customer_id JOIN merchant_profiles m ON m.id=o.merchant_id";const values:string[]=[];
+   if(status&&["pending","accepted","rejected","processing","shipped","delivered","cancelled"].includes(status)){sql+=" WHERE o.status=?";values.push(status);}
+   sql+=" ORDER BY o.created_at DESC LIMIT 100";const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:result.results||[]}});
+  }
+  if(merchantParts.length===4&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="users"&&request.method==="POST"){
+   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const status=String(body.status||"");if(!["active","suspended"].includes(status))return fail(422,"INVALID_STATUS","Choose active or suspended.");
+   const target=await env.DB.prepare("SELECT id,role FROM users WHERE id=?").bind(id).first<any>();if(!target)return fail(404,"USER_NOT_FOUND","User was not found.");
+   if(target.role==="admin"||id===admin.id)return fail(403,"ADMIN_PROTECTED","Administrator accounts cannot be changed here.");
+   if(status==="active"&&target.role==="merchant")return fail(409,"MERCHANT_REVIEW_REQUIRED","Merchant reactivation must be reviewed through merchant applications.");
+   await env.DB.prepare("UPDATE users SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
+   if(status==="suspended"&&target.role==="merchant")await env.DB.prepare("UPDATE merchant_profiles SET status='suspended',updated_at=? WHERE user_id=?").bind(new Date().toISOString(),id).run();
+   return json({data:{success:true,status}});
+  }
   if(url.pathname==="/api/admin/products"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
    const result=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();

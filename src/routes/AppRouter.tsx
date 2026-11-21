@@ -17,6 +17,8 @@ import MerchantProductsPage from "../pages/MerchantProductsPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminMerchantsPage from "../pages/AdminMerchantsPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
+import AdminUsersPage from "../pages/AdminUsersPage";
+import AdminOrdersPage from "../pages/AdminOrdersPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
@@ -41,6 +43,8 @@ export default function AppRouter() {
   <Route path="/admin" element={<RequireAuth roles={["admin"]}><AdminDashboardPage/></RequireAuth>}/>
   <Route path="/admin/merchants" element={<RequireAuth roles={["admin"]}><AdminMerchantsPage/></RequireAuth>}/>
   <Route path="/admin/products" element={<RequireAuth roles={["admin"]}><AdminProductsPage/></RequireAuth>}/>
+  <Route path="/admin/users" element={<RequireAuth roles={["admin"]}><AdminUsersPage/></RequireAuth>}/>
+  <Route path="/admin/orders" element={<RequireAuth roles={["admin"]}><AdminOrdersPage/></RequireAuth>}/>
   <Route path="/merchant/products" element={<RequireAuth roles={["merchant"]}><MerchantProductsPage/></RequireAuth>}/>
   <Route path="/merchant/orders" element={<RequireAuth roles={["merchant"]}><MerchantOrdersPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
