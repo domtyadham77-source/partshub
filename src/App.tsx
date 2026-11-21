@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "./contexts/CartContext";
+import { products as catalogProducts } from "./data/products";
 import { Search, ShoppingCart, SlidersHorizontal, Wrench, Bike, CarFront, ArrowUpRight, ShieldCheck, Truck, Headphones } from "lucide-react";
 
 type Category = "All" | "Car parts" | "Motorcycle parts" | "Workshop";
@@ -18,7 +21,7 @@ const money = (value: number) => new Intl.NumberFormat("en-EG", { style: "curren
 export default function App() {
   const [category, setCategory] = useState<Category>("All");
   const [query, setQuery] = useState("");
-  const [cartCount, setCartCount] = useState(0);
+  const { count: cartCount, addItem } = useCart();
   const visible = useMemo(() => products.filter((item) =>
     (category === "All" || item.category === category) &&
     (item.name + item.fitment + item.seller).toLowerCase().includes(query.toLowerCase())
@@ -30,7 +33,7 @@ export default function App() {
       <nav className="desktop-nav" aria-label="Main navigation">
         <a className="active" href="#parts">Explore parts</a><a href="#categories">Categories</a><a href="#workshops">Workshops</a><a href="#sell">Sell with us</a>
       </nav>
-      <button className="cart-button" aria-label={`Shopping cart, ${cartCount} items`}><ShoppingCart size={19}/><span>Cart</span><b>{cartCount}</b></button>
+      <Link className="cart-button" to="/cart" aria-label={`Shopping cart, ${cartCount} items`}><ShoppingCart size={19}/><span>Cart</span><b>{cartCount}</b></Link>
     </header>
 
     <main>
@@ -51,7 +54,7 @@ export default function App() {
         <div className="section-heading"><div><span className="eyebrow">THE RIGHT GEAR</span><h2>Explore the marketplace</h2><p>Find dependable parts for every ride.</p></div><button className="filter-button"><SlidersHorizontal size={17}/> Filters</button></div>
         <div className="category-tabs" id="categories">{(["All", "Car parts", "Motorcycle parts", "Workshop"] as Category[]).map((item) => <button key={item} className={category === item ? "selected" : ""} onClick={() => setCategory(item)}>{item === "Car parts" ? <CarFront size={17}/> : item === "Motorcycle parts" ? <Bike size={17}/> : item === "Workshop" ? <Wrench size={17}/> : null}{item}</button>)}</div>
         <div className="results-line"><span>{visible.length} items to explore</span><span>Curated marketplace <ArrowUpRight size={15}/></span></div>
-        <div className="product-grid">{visible.map((item, index) => <article className="product-card" key={item.id}><div className={`product-visual visual-${index % 4}`}>{item.category === "Motorcycle parts" ? <Bike size={66} strokeWidth={1}/> : item.category === "Workshop" ? <Wrench size={66} strokeWidth={1}/> : <CarFront size={66} strokeWidth={1}/ >}{item.tag && <span className="product-tag">{item.tag}</span>}<span className="visual-code">PH / 0{item.id}</span></div><div className="product-info"><span className="product-category">{item.category}</span><h3>{item.name}</h3><p>{item.fitment}</p><div className="seller-line"><span>{item.seller}</span><span>★ {item.rating}</span></div><div className="product-bottom"><b>{money(item.price)}</b><button aria-label={`Add ${item.name} to cart`} onClick={() => setCartCount((count) => count + 1)}>+</button></div></div></article>)}</div>
+        <div className="product-grid">{visible.map((item, index) => <article className="product-card" key={item.id}><div className={`product-visual visual-${index % 4}`}>{item.category === "Motorcycle parts" ? <Bike size={66} strokeWidth={1}/> : item.category === "Workshop" ? <Wrench size={66} strokeWidth={1}/> : <CarFront size={66} strokeWidth={1}/ >}{item.tag && <span className="product-tag">{item.tag}</span>}<span className="visual-code">PH / 0{item.id}</span></div><div className="product-info"><span className="product-category">{item.category}</span><h3>{item.name}</h3><p>{item.fitment}</p><div className="seller-line"><span>{item.seller}</span><span>★ {item.rating}</span></div><div className="product-bottom"><b>{money(item.price)}</b><button aria-label={`Add ${item.name} to cart`} onClick={() => { const match = catalogProducts.find((product) => product.name === item.name); if (match) addItem(match); }}>+</button></div></div></article>)}</div>
         {visible.length === 0 && <div className="empty-results"><Search size={28}/><h3>No matching parts found</h3><p>Try another search or choose a different category.</p><button onClick={() => { setQuery(""); setCategory("All"); }}>Clear filters</button></div>}
       </section>
 
