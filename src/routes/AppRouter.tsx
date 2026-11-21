@@ -3,6 +3,7 @@ import App from "../App";
 import CatalogPage from "../pages/CatalogPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import CartPage from "../pages/CartPage";
+import FavoritesPage from "../pages/FavoritesPage";
 import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
@@ -22,7 +23,7 @@ export default function AppRouter() {
   <Route path="/register" element={<InfoPage title="Create your account" description="Customer and merchant registration will be implemented with verified server-side validation."/>}/>
   <Route path="/forgot-password" element={<InfoPage title="Recover your account" description="Account recovery will use a short-lived, one-time verification code with rate limits and secure storage."/>}/>
   <Route path="/account" element={<InfoPage title="My account" description="Your profile, addresses, and account preferences will appear here after sign-in is connected."/>}/>
-  <Route path="/favorites" element={<InfoPage title="Saved parts" description="Favorites will sync to your account when authentication is connected."/>}/>
+  <Route path="/favorites" element={<FavoritesPage/>}/>
   <Route path="/cart" element={<CartPage/>}/>
   <Route path="/checkout" element={<InfoPage title="Checkout" description="Checkout will be enabled only after order validation, delivery options, and payment handling are implemented."/>}/>
   <Route path="/orders" element={<InfoPage title="My orders" description="Order history and tracking will be available after the order API is connected."/>}/>

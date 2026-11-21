@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingCart, Wrench } from "lucide-react";
+import { ShoppingCart, Wrench, Heart } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 
 export default function Header() {
@@ -9,6 +9,7 @@ export default function Header() {
     <nav aria-label="Main navigation">
       <NavLink to="/cars">Car parts</NavLink><NavLink to="/motorcycles">Motorcycles</NavLink><NavLink to="/workshops">Workshops</NavLink><NavLink to="/sell">Sell with us</NavLink>
     </nav>
+    <Link className="cart-button" to="/favorites" aria-label="Saved parts"><Heart size={17}/></Link>
     <Link className="cart-button" to="/cart"><ShoppingCart size={18}/><span>Cart</span><b className="header-cart-count">{count}</b></Link>
   </header>;
 }
