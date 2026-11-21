@@ -8,12 +8,12 @@ Automotive and motorcycle parts marketplace for Egypt. The project is developed 
 - Live product catalog and product details backed by Cloudflare D1.
 - Customer and merchant registration/sign-in using PBKDF2 password hashes and HttpOnly session cookies.
 - Merchant accounts start pending and require admin approval.
-- Merchant product drafts, product moderation, and product image crop/rotate/upload.
+- Merchant product drafts, product moderation, and product image crop/rotate/upload.\n- Approved garage, maintenance center, and motorcycle workshop directory.
 - D1 image storage (one image per product, maximum 1 MB); no R2 binding is required.
 - Persistent cart and saved products in the browser.
 - Checkout creates one order per seller; seller confirmation rechecks and reserves stock.
 - Customer order history and merchant order processing.
-- Admin overview, merchant review, product moderation, user controls, and order monitoring.
+- Admin overview, merchant review, product moderation, user controls, order monitoring, support inbox, and per-user notifications.
 - Preview CI checks the frontend build/tests and Worker TypeScript.
 
 ## Local development
@@ -42,7 +42,7 @@ npm run typecheck
 
 1. Create a dedicated D1 database for Preview. Never reuse the Production database.
 2. In the Cloudflare Pages project, open **Settings → Functions → D1 database bindings** for the Preview environment and add binding name `DB` pointing to the Preview D1 database.
-3. Apply every SQL migration in `worker/migrations/` in ascending filename order (0003 through 0007). The first two legacy migration files are empty placeholders.
+3. Apply every SQL migration in `worker/migrations/` in ascending filename order (0003 through 0010). The first two legacy migration files are empty placeholders.
 4. Ensure the Pages project builds from the `preview` branch using `npm run build` with output directory `dist`.
 5. The Pages Function at `functions/api/[[path]].ts` serves the API under the same origin at `/api/*`; no separate API URL is needed for the default setup.
 6. Test `/api/health`, then register a customer and a merchant account. Approve the merchant and its product drafts from the admin panel.
