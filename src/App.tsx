@@ -1,8 +1,9 @@
 import { useEffect,useMemo,useState } from "react";
 import { Link } from "react-router-dom";
-import { Search,ShoppingCart,Wrench,ArrowUpRight,ShieldCheck,Truck,Headphones,UserRound,Heart } from "lucide-react";
+import { Search,ShoppingCart,Wrench,ArrowUpRight,ShieldCheck,Truck,Headphones,UserRound,Heart,Bell } from "lucide-react";
 import { useCart } from "./contexts/CartContext";
 import { useAuth } from "./contexts/AuthContext";
+import { useNotifications } from "./contexts/NotificationContext";
 import ProductFilters from "./components/products/ProductFilters";
 import ProductGrid from "./components/products/ProductGrid";
 import { productsService } from "./services/products";
@@ -11,7 +12,7 @@ import type { Product,ProductCategory } from "./types/product";
 type Category=ProductCategory|"All";
 export default function App(){
  const [category,setCategory]=useState<Category>("All");const [query,setQuery]=useState("");const [items,setItems]=useState<Product[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState("");
- const {count}=useCart();const {user,loading:authLoading}=useAuth();
+ const {count}=useCart();const {user,loading:authLoading}=useAuth();const {unreadCount}=useNotifications();
  useEffect(()=>{let active=true;productsService.list().then(result=>{if(active)setItems(result)}).catch(err=>{if(active)setError(err instanceof Error?err.message:"Unable to load marketplace listings.")}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
  const visible=useMemo(()=>items.filter(item=>(category==="All"||item.category===category)&&[item.name,item.fitment,item.seller].join(" ").toLowerCase().includes(query.trim().toLowerCase())),[items,category,query]);
  return <div className="app-shell">
