@@ -37,9 +37,9 @@ async function handle(request:Request,env:Env):Promise<Response>{
  if(url.pathname.startsWith("/api/images/")&&request.method==="GET"){
   const imageId=url.pathname.slice("/api/images/".length);const row=await env.DB.prepare("SELECT pi.image_data,pi.content_type,p.status AS product_status,m.status AS merchant_status,m.user_id FROM product_images pi JOIN products p ON p.id=pi.product_id JOIN merchant_profiles m ON m.id=p.merchant_id WHERE pi.id=?").bind(imageId).first<any>();
   if(!row)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
-  let allowed=row.product_status==="active"&&row.merchant_status==="active";if(!allowed){const user=await readUser(request,env);allowed=!!user&&user.role==="merchant"&&user.id===row.user_id;}
+  const isPublic=row.product_status==="active"&&row.merchant_status==="active";let allowed=isPublic;if(!allowed){const user=await readUser(request,env);allowed=!!user&&user.role==="merchant"&&user.id===row.user_id;}
   if(!allowed)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
-  return new Response(row.image_data,{status:200,headers:{"Content-Type":row.content_type,"Cache-Control":"public, max-age=3600","X-Content-Type-Options":"nosniff"}});
+  return new Response(row.image_data,{status:200,headers:{"Content-Type":row.content_type,"Cache-Control":isPublic?"public, max-age=3600":"private, no-store","X-Content-Type-Options":"nosniff"}});
  }
  if(url.pathname==="/api/products"&&request.method==="GET"){
   const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
