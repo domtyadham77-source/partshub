@@ -87,6 +87,19 @@ async function handle(request:Request,env:Env):Promise<Response>{
   }
   return json({data:{orders:created}},201);
  }
+
+ if(url.pathname==="/api/support/tickets"&&request.method==="GET"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view support requests.");
+  const result=await env.DB.prepare("SELECT id,ticket_number,category,subject,message,status,admin_note,created_at,updated_at FROM support_tickets WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(user.id).all<any>();return json({data:{items:result.results||[]}});
+ }
+ if(url.pathname==="/api/support/tickets"&&request.method==="POST"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to contact support.");
+  let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+  const category=String(body.category||"other"),subject=String(body.subject||"").trim(),message=String(body.message||"").trim();
+  if(!["order","account","payment","delivery","product","other"].includes(category)||subject.length<5||subject.length>120||message.length<10||message.length>3000)return fail(422,"INVALID_TICKET","Check the support category, subject, and message.");
+  const id=crypto.randomUUID(),ticketNumber="SUP"+new Date().toISOString().slice(2,10).replace(/-/g,"")+randomToken(3).slice(0,6).toUpperCase();
+  await env.DB.prepare("INSERT INTO support_tickets(id,ticket_number,user_id,category,subject,message) VALUES(?,?,?,?,?,?)").bind(id,ticketNumber,user.id,category,subject,message).run();return json({data:{id,ticketNumber,status:"open"}},201);
+ }
  if(url.pathname.startsWith("/api/orders/")){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
   const segments=url.pathname.split("/").filter(Boolean),id=segments[2];
@@ -132,6 +145,16 @@ async function handle(request:Request,env:Env):Promise<Response>{
    await env.DB.prepare("UPDATE users SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
    if(status==="suspended"&&target.role==="merchant")await env.DB.prepare("UPDATE merchant_profiles SET status='suspended',updated_at=? WHERE user_id=?").bind(new Date().toISOString(),id).run();
    return json({data:{success:true,status}});
+  }
+
+  if(url.pathname==="/api/admin/support"&&request.method==="GET"){
+   const status=url.searchParams.get("status")||"open";if(!["open","in_progress","resolved","closed"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid ticket status.");
+   const result=await env.DB.prepare("SELECT t.*,u.full_name,u.email FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE t.status=? ORDER BY t.created_at ASC LIMIT 100").bind(status).all<any>();return json({data:{items:result.results||[]}});
+  }
+  if(merchantParts.length===4&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="support"&&request.method==="POST"){
+   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const status=String(body.status||""),note=String(body.adminNote||"").trim();if(!["in_progress","resolved","closed"].includes(status)||note.length>1000)return fail(422,"INVALID_TICKET_UPDATE","Choose a valid status and a note up to 1,000 characters.");
+   const result=await env.DB.prepare("UPDATE support_tickets SET status=?,admin_note=?,updated_at=? WHERE id=?").bind(status,note,new Date().toISOString(),id).run();return result.meta.changes?json({data:{success:true,status}}):fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");
   }
   if(url.pathname==="/api/admin/products"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
