@@ -67,7 +67,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const product=await env.DB.prepare("SELECT p.*,m.id AS active_merchant_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(productId).first<any>();
    if(!product)return fail(409,"PRODUCT_UNAVAILABLE","One of the selected products is no longer available.");
    if(product.stock_quantity<quantity)return fail(409,"INSUFFICIENT_STOCK",`Not enough stock for ${product.name}. Please update your cart.`);
-   const group=groups.get(product.merchant_id)||{merchantId:product.merchant_id,items:[],subtotal:0};
+   const group:{merchantId:string;items:Array<{id:string;name:string;sku:string|null;price:number;quantity:number}>;subtotal:number}=groups.get(product.merchant_id)||{merchantId:product.merchant_id,items:[],subtotal:0};
    group.items.push({id:product.id,name:product.name,sku:product.sku,price:product.price_piasters,quantity});group.subtotal+=product.price_piasters*quantity;groups.set(product.merchant_id,group);
   }
   const created:Array<{id:string;orderNumber:string;totalPiasters:number}>=[];
