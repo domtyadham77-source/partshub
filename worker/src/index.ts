@@ -88,6 +88,16 @@ async function handle(request:Request,env:Env):Promise<Response>{
   return json({data:{orders:created}},201);
  }
 
+
+ if(url.pathname==="/api/notifications"&&request.method==="GET"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view notifications.");
+  const rows=await env.DB.prepare("SELECT id,title,message,type,read_at,created_at FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(user.id).all<any>();return json({data:{items:rows.results||[]}});
+ }
+ if(url.pathname.startsWith("/api/notifications/")&&request.method==="POST"){
+  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
+  const id=url.pathname.slice("/api/notifications/".length).replace(/\/read$/,"");
+  const result=await env.DB.prepare("UPDATE notifications SET read_at=? WHERE id=? AND user_id=?").bind(new Date().toISOString(),id,user.id).run();return result.meta.changes?json({data:{success:true}}):fail(404,"NOTIFICATION_NOT_FOUND","Notification was not found.");
+ }
  if(url.pathname==="/api/support/tickets"&&request.method==="GET"){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view support requests.");
   const result=await env.DB.prepare("SELECT id,ticket_number,category,subject,message,status,admin_note,created_at,updated_at FROM support_tickets WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(user.id).all<any>();return json({data:{items:result.results||[]}});
@@ -147,6 +157,17 @@ async function handle(request:Request,env:Env):Promise<Response>{
    return json({data:{success:true,status}});
   }
 
+
+  if(url.pathname==="/api/admin/notifications"&&request.method==="POST"){
+   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const userId=String(body.userId||""),title=String(body.title||"").trim(),message=String(body.message||"").trim(),type=String(body.type||"info");
+   if(!userId||title.length<2||title.length>100||message.length<3||message.length>1000||!["info","success","warning"].includes(type))return fail(422,"INVALID_NOTIFICATION","Check the recipient, title, message, and type.");
+   const target=await env.DB.prepare("SELECT id FROM users WHERE id=? AND status='active'").bind(userId).first();if(!target)return fail(404,"USER_NOT_FOUND","Active user was not found.");
+   const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO notifications(id,user_id,created_by,title,message,type) VALUES(?,?,?,?,?,?)").bind(id,userId,admin.id,title,message,type).run();return json({data:{id,success:true}},201);
+  }
+  if(url.pathname==="/api/admin/notifications"&&request.method==="GET"){
+   const rows=await env.DB.prepare("SELECT n.id,n.title,n.message,n.type,n.created_at,u.full_name,u.email FROM notifications n JOIN users u ON u.id=n.user_id ORDER BY n.created_at DESC LIMIT 100").all<any>();return json({data:{items:rows.results||[]}});
+  }
   if(url.pathname==="/api/admin/support"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"open";if(!["open","in_progress","resolved","closed"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid ticket status.");
    const result=await env.DB.prepare("SELECT t.*,u.full_name,u.email FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE t.status=? ORDER BY t.created_at ASC LIMIT 100").bind(status).all<any>();return json({data:{items:result.results||[]}});
