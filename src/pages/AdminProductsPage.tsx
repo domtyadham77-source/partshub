@@ -1,5 +1,5 @@
 import { useEffect,useState } from "react";
-import { Check,Archive,RefreshCw,Package } from "lucide-react";
+import { Check,Archive,RefreshCw } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import Badge from "../components/ui/Badge";
 import { adminService } from "../services/admin";
