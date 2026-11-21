@@ -19,7 +19,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
  const url=new URL(request.url);if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(url.pathname==="/api/health")return json({data:{ok:true,service:"parts-hub-api"}});
  if(!url.pathname.startsWith("/api/auth/"))return fail(404,"NOT_FOUND","Endpoint not found.");
- const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
+ const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
  if(request.method==="GET"&&url.pathname==="/api/auth/me"){const user=await readUser(request,env);return json({data:{user}});}
  if(request.method==="POST"&&url.pathname==="/api/auth/logout"){const token=cookieValue(request,"ph_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await digest(token)).run();return json({data:{success:true}},200,{"Set-Cookie":clearCookie()});}
  if(request.method!=="POST")return fail(405,"METHOD_NOT_ALLOWED","Method not allowed.");
