@@ -10,4 +10,5 @@ export type Product = {
   description: string;
   stockStatus: "in-stock" | "limited" | "out-of-stock";
   tag?: string;
+  imageUrl?: string;
 };

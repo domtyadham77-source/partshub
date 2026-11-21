@@ -15,3 +15,12 @@ export async function apiRequest<T>(path:string,options:RequestOptions={}):Promi
   if(!response.ok) throw new ApiRequestError(payload?.error?.message||"Something went wrong. Please try again.",response.status,payload?.error?.code,payload?.error?.fields);
   return (payload&&"data" in payload?payload.data:payload) as T;
 }
+
+export async function apiUpload<T>(path:string,form:FormData):Promise<T>{
+ const headers=new Headers({Accept:"application/json"});let response:Response;
+ try{response=await fetch(`${env.apiBaseUrl}${path.startsWith("/")?path:`/${path}`}`,{method:"POST",headers,credentials:"include",body:form});}
+ catch{throw new ApiRequestError("Unable to reach Parts Hub. Check your connection and try again.",0,"NETWORK_ERROR");}
+ const payload=await response.json().catch(()=>null) as {data?:T;error?:{code?:string;message?:string;fields?:Record<string,string>}}|null;
+ if(!response.ok)throw new ApiRequestError(payload?.error?.message||"Image upload failed.",response.status,payload?.error?.code,payload?.error?.fields);
+ return (payload&&"data" in payload?payload.data:payload) as T;
+}
