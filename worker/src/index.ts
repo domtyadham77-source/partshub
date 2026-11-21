@@ -46,6 +46,45 @@ async function handle(request:Request,env:Env):Promise<Response>{
   return row?json({data:{product:publicProduct(row)}}):fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
  }
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
+
+ if(url.pathname.startsWith("/api/merchant/")){
+  const isProfile=url.pathname==="/api/merchant/profile";
+  const context=await merchantFor(request,env,isProfile&&(request.method==="GET"||request.method==="PATCH"));
+  if(context.error)return context.error;
+  const merchant=context.merchant;
+  if(isProfile&&request.method==="GET")return json({data:{merchant:{id:merchant.id,storeName:merchant.store_name,description:merchant.description,contactPhone:merchant.contact_phone,status:merchant.status}}});
+  if(isProfile&&request.method==="PATCH"){
+   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const storeName=String(body.storeName??merchant.store_name).trim(),description=String(body.description??merchant.description).trim(),phone=String(body.contactPhone??merchant.contact_phone??"").trim()||null;
+   if(storeName.length<2||storeName.length>100||description.length>1000||(phone&&phone.length>30))return fail(422,"INVALID_PROFILE","Check your store name, description, and phone.");
+   await env.DB.prepare("UPDATE merchant_profiles SET store_name=?,description=?,contact_phone=?,updated_at=? WHERE id=?").bind(storeName,description,phone,new Date().toISOString(),merchant.id).run();
+   return json({data:{success:true}});
+  }
+  if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
+   const rows=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
+   return json({data:{items:(rows.results||[]).map(publicProduct)}});
+  }
+  if(url.pathname==="/api/merchant/products"&&request.method==="POST"){
+   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const name=String(body.name||"").trim(),category=String(body.category||""),fitment=String(body.fitment||"").trim(),description=String(body.description||"").trim(),sku=String(body.sku||"").trim()||null,price=Number(body.pricePiasters),stock=Number(body.stockQuantity??0);
+   if(name.length<3||name.length>140||!["car_parts","motorcycle_parts","workshop"].includes(category)||fitment.length>160||description.length>3000||!Number.isSafeInteger(price)||price<1||!Number.isSafeInteger(stock)||stock<0||stock>1000000)return fail(422,"INVALID_PRODUCT","Check the product name, category, price, and stock quantity.");
+   const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO products(id,merchant_id,name,category,fitment,sku,description,price_piasters,stock_quantity,status) VALUES(?,?,?,?,?,?,?,?,?,'draft')").bind(id,merchant.id,name,category,fitment,sku,description,price,stock).run();
+   return json({data:{id,status:"draft"}},201);
+  }
+  const segments=url.pathname.split("/").filter(Boolean);
+  if(segments.length===4&&segments[0]==="api"&&segments[1]==="merchant"&&segments[2]==="products"){
+   const id=segments[3],item=await env.DB.prepare("SELECT * FROM products WHERE id=? AND merchant_id=?").bind(id,merchant.id).first<any>();
+   if(!item)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
+   if(request.method==="DELETE"){await env.DB.prepare("UPDATE products SET status='archived',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run();return json({data:{success:true}});}
+   if(request.method==="PATCH"){
+    let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+    const name=String(body.name??item.name).trim(),fitment=String(body.fitment??item.fitment).trim(),description=String(body.description??item.description).trim(),sku=body.sku===undefined?item.sku:(String(body.sku).trim()||null),price=Number(body.pricePiasters??item.price_piasters),stock=Number(body.stockQuantity??item.stock_quantity);
+    if(name.length<3||name.length>140||fitment.length>160||description.length>3000||!Number.isSafeInteger(price)||price<1||!Number.isSafeInteger(stock)||stock<0||stock>1000000)return fail(422,"INVALID_PRODUCT","Check the product name, price, and stock quantity.");
+    await env.DB.prepare("UPDATE products SET name=?,fitment=?,description=?,sku=?,price_piasters=?,stock_quantity=?,updated_at=? WHERE id=?").bind(name,fitment,description,sku,price,stock,new Date().toISOString(),id).run();return json({data:{success:true}});
+   }
+  }
+  return fail(404,"NOT_FOUND","Merchant endpoint not found.");
+ }
  if(request.method==="GET"&&url.pathname==="/api/auth/me"){const user=await readUser(request,env);return json({data:{user}});}
  if(request.method==="POST"&&url.pathname==="/api/auth/logout"){const token=cookieValue(request,"ph_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await digest(token)).run();return json({data:{success:true}},200,{"Set-Cookie":clearCookie()});}
  if(request.method!=="POST")return fail(405,"METHOD_NOT_ALLOWED","Method not allowed.");
