@@ -191,7 +191,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   if(merchantParts.length===4&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="support"&&request.method==="POST"){
    const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
    const status=String(body.status||""),note=String(body.adminNote||"").trim();if(!["in_progress","resolved","closed"].includes(status)||note.length>1000)return fail(422,"INVALID_TICKET_UPDATE","Choose a valid status and a note up to 1,000 characters.");
-   const result=await env.DB.prepare("UPDATE support_tickets SET status=?,admin_note=?,updated_at=? WHERE id=?").bind(status,note,new Date().toISOString(),id).run();return result.meta.changes?json({data:{success:true,status}}):fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");
+   const ticket=await env.DB.prepare("SELECT user_id,ticket_number FROM support_tickets WHERE id=?").bind(id).first<any>();if(!ticket)return fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");const result=await env.DB.prepare("UPDATE support_tickets SET status=?,admin_note=?,updated_at=? WHERE id=?").bind(status,note,new Date().toISOString(),id).run();if(!result.meta.changes)return fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");await createNotification(env,ticket.user_id,"Support request updated",`Your support request ${ticket.ticket_number} is now ${status.replace("_"," ")}.`,status==="resolved"?"success":"info",admin.id);return json({data:{success:true,status}});
   }
   if(url.pathname==="/api/admin/products"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
@@ -209,6 +209,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const result=await env.DB.prepare("UPDATE merchant_profiles SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
    if(!result.meta.changes)return fail(404,"MERCHANT_NOT_FOUND","Merchant profile was not found.");
    if(status==="active"||status==="rejected")await env.DB.prepare("UPDATE users SET status='active',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();if(status==="suspended")await env.DB.prepare("UPDATE users SET status='suspended',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();
+   const owner=await env.DB.prepare("SELECT user_id FROM merchant_profiles WHERE id=?").bind(id).first<any>();if(owner)await createNotification(env,owner.user_id,"Seller application reviewed",status==="active"?"Your seller account has been approved. You can now manage your store.":status==="rejected"?"Your seller application was not approved. Contact support if you need help.":"Seller access has been suspended.",status==="active"?"success":"warning",admin.id);
    return json({data:{success:true,status}});
   }
   if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="products"&&merchantParts[4]==="status"&&request.method==="POST"){
@@ -217,7 +218,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const product=await env.DB.prepare("SELECT p.id,m.status AS merchant_status,u.status AS user_status FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=?").bind(id).first<any>();
    if(!product)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
    if(status==="active"&&(product.merchant_status!=="active"||product.user_status!=="active"))return fail(409,"MERCHANT_NOT_APPROVED","Approve the merchant before activating product listings.");
-   await env.DB.prepare("UPDATE products SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();return json({data:{success:true,status}});
+   await env.DB.prepare("UPDATE products SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();await createNotification(env,product.merchant_user_id,"Product listing reviewed",status==="active"?"Your product listing is now visible in the marketplace.":"Your product listing was archived by marketplace moderation.",status==="active"?"success":"warning",admin.id);return json({data:{success:true,status}});
   }
   return fail(404,"NOT_FOUND","Admin endpoint not found.");
  }
