@@ -1,4 +1,5 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";\nimport { cleanup } from "@testing-library/react";
+import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { cleanup } from "@testing-library/react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { CartProvider, useCart } from "./CartContext";
 import type { Product } from "../types/product";
