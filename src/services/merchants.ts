@@ -5,6 +5,7 @@ export type MerchantProduct=Product&{status:"draft"|"active"|"archived";stockQua
 function map(item:ApiProduct):MerchantProduct{return{id:item.id,name:item.name,category:item.category==="car_parts"?"Car parts":item.category==="motorcycle_parts"?"Motorcycle parts":"Workshop",fitment:item.fitment,description:item.description,imageUrl:item.imageUrl||undefined,price:item.pricePiasters/100,seller:item.seller,rating:0,stockStatus:item.stockQuantity>0?"in-stock":"out-of-stock",status:item.status,stockQuantity:item.stockQuantity};}
 export const merchantService={
  profile:()=>apiRequest<{merchant:{id:string;storeName:string;description:string;contactPhone:string|null;status:string}}>("/merchant/profile"),
+ updateProfile:(input:{storeName:string;description:string;contactPhone:string})=>apiRequest<{success:true}>("/merchant/profile",{method:"PATCH",body:input}),
  listProducts:async()=>{const result=await apiRequest<{items:ApiProduct[]}>("/merchant/products");return result.items.map(map);},
  createProduct:(input:{name:string;category:"car_parts"|"motorcycle_parts"|"workshop";fitment:string;description:string;pricePiasters:number;stockQuantity:number;sku?:string})=>apiRequest<{id:string;status:string}>("/merchant/products",{method:"POST",body:input}),
  uploadImage:(id:string,image:Blob)=>{const form=new FormData();form.append("image",image,"product.jpg");return apiUpload<{imageUrl:string}>(`/merchant/products/${encodeURIComponent(id)}/image`,form);},

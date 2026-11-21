@@ -1,1 +1,12 @@
-
+import { useEffect,useState,type FormEvent } from "react";
+import MainLayout from "../components/layout/MainLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import { merchantService } from "../services/merchants";
+export default function MerchantProfilePage(){
+ const [storeName,setStoreName]=useState("");const [description,setDescription]=useState("");const [phone,setPhone]=useState("");const [status,setStatus]=useState("");const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [message,setMessage]=useState("");const [error,setError]=useState("");
+ useEffect(()=>{merchantService.profile().then(({merchant})=>{setStoreName(merchant.storeName);setDescription(merchant.description);setPhone(merchant.contactPhone||"");setStatus(merchant.status)}).catch(err=>setError(err instanceof Error?err.message:"Unable to load seller profile.")).finally(()=>setLoading(false))},[]);
+ async function submit(e:FormEvent){e.preventDefault();setBusy(true);setError("");setMessage("");try{await merchantService.updateProfile({storeName:storeName.trim(),description:description.trim(),contactPhone:phone.trim()});setMessage("Store profile saved.")}catch(err){setError(err instanceof Error?err.message:"Unable to save profile.")}finally{setBusy(false)}}
+ return <MainLayout><section className="merchant-products"><span className="eyebrow">SELLER WORKSPACE</span><h1>Store profile.</h1><p>Keep your public seller information accurate.</p>{loading?<div className="catalog-state">Loading profile…</div>:<form className="merchant-product-form" onSubmit={submit}><div><Badge tone={status==="active"?"success":"orange"}>{status==="active"?"APPROVED SELLER":status.toUpperCase()}</Badge></div><Input label="Store name" name="store-name" required minLength={2} maxLength={100} value={storeName} onChange={e=>setStoreName(e.target.value)}/><div className="ph-field"><label htmlFor="store-description">Store description</label><textarea id="store-description" className="ph-input" rows={4} maxLength={1000} value={description} onChange={e=>setDescription(e.target.value)} placeholder="Tell customers what your store specializes in."/></div><Input label="Contact phone" name="store-phone" type="tel" maxLength={30} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+20…"/>{error&&<div className="auth-error" role="alert">{error}</div>}{message&&<div className="auth-success" role="status">{message}</div>}<Button type="submit" disabled={busy}>{busy?"Saving…":"Save store profile"}</Button></form>}</section></MainLayout>;
+}
