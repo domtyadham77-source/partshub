@@ -153,12 +153,13 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const next=String(body.status||"");if(!["accepted","rejected","processing","shipped","delivered"].includes(next))return fail(422,"INVALID_ORDER_STATUS","Choose a valid order status.");
    const order=await env.DB.prepare("SELECT * FROM orders WHERE id=? AND merchant_id=?").bind(orderId,merchant.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
    const allowed:Record<string,string[]>={pending:["accepted","rejected"],accepted:["processing"],processing:["shipped"],shipped:["delivered"]};if(!allowed[order.status]?.includes(next))return fail(409,"INVALID_ORDER_TRANSITION","This order cannot move to that status.");
+   const reservedItems:Array<{id:string;quantity:number}>=[];
    if(next==="accepted"){
-    const items=await env.DB.prepare("SELECT product_id,quantity FROM order_items WHERE order_id=?").bind(orderId).all<any>();const changed:Array<{id:string;quantity:number}>=[];
-    for(const item of items.results||[]){const result=await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity-?,updated_at=? WHERE id=? AND stock_quantity>=? AND status='active'").bind(item.quantity,new Date().toISOString(),item.product_id,item.quantity).run();if(!result.meta.changes){for(const previous of changed)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(previous.quantity,previous.id).run();return fail(409,"INSUFFICIENT_STOCK","Stock changed before this order could be accepted.");}changed.push({id:item.product_id,quantity:item.quantity});}
+    const items=await env.DB.prepare("SELECT product_id,quantity FROM order_items WHERE order_id=?").bind(orderId).all<any>();
+    for(const item of items.results||[]){const result=await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity-?,updated_at=? WHERE id=? AND stock_quantity>=? AND status='active'").bind(item.quantity,new Date().toISOString(),item.product_id,item.quantity).run();if(!result.meta.changes){for(const previous of changed)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(previous.quantity,previous.id).run();return fail(409,"INSUFFICIENT_STOCK","Stock changed before this order could be accepted.");}reservedItems.push({id:item.product_id,quantity:item.quantity});}
    }
    const result=await env.DB.prepare("UPDATE orders SET status=?,updated_at=? WHERE id=? AND merchant_id=? AND status=?").bind(next,new Date().toISOString(),orderId,merchant.id,order.status).run();
-   if(!result.meta.changes)return fail(409,"ORDER_UPDATED","This order was updated by another request. Refresh and try again.");
+   if(!result.meta.changes){for(const reserved of reservedItems)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(reserved.quantity,reserved.id).run();return fail(409,"ORDER_UPDATED","This order was updated by another request. Refresh and try again.");}
    return json({data:{success:true,status:next}});
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
