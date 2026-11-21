@@ -20,6 +20,10 @@ async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:numbe
  await env.DB.prepare("DELETE FROM auth_attempts WHERE created_at<?").bind(new Date(Date.now()-86400000).toISOString()).run();
  return (row?.total||0)<limit;
 }
+
+type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string};
+function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,createdAt:row.created_at};}
+async function merchantFor(request:Request,env:Env,allowPending=false){const user=await readUser(request,env);if(!user)return{error:fail(401,"UNAUTHENTICATED","Sign in to continue.")};if(user.role!=="merchant")return{error:fail(403,"MERCHANT_ONLY","A merchant account is required.")};const merchant=await env.DB.prepare("SELECT * FROM merchant_profiles WHERE user_id=?").bind(user.id).first<MerchantRow>();if(!merchant)return{error:fail(404,"MERCHANT_PROFILE_MISSING","Merchant profile was not found.")};if(merchant.status!=="active"&&!allowPending)return{error:fail(403,"MERCHANT_NOT_APPROVED","Your seller account must be approved before managing listings.")};return{user,merchant};}
 async function readUser(request:Request,env:Env){const token=cookieValue(request,"ph_session");if(!token)return null;const hash=await digest(token);const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(hash,new Date().toISOString()).first<any>();return row?publicUser(row):null;}
 async function createSession(userId:string,env:Env){const token=randomToken();const days=Math.min(30,Math.max(1,Number(env.SESSION_TTL_DAYS)||14));const expires=new Date(Date.now()+days*86400000).toISOString();await env.DB.prepare("INSERT INTO sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)").bind(crypto.randomUUID(),userId,await digest(token),expires).run();return {token,expires};}
 function cookie(token:string,maxAge:number){return `ph_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`;}
@@ -27,7 +31,20 @@ function clearCookie(){return "ph_session=; HttpOnly; Secure; SameSite=Lax; Path
 async function handle(request:Request,env:Env):Promise<Response>{
  const url=new URL(request.url);if(request.method==="OPTIONS")return new Response(null,{status:204,headers:corsHeaders(request,env)});
  if(url.pathname==="/api/health")return json({data:{ok:true,service:"parts-hub-api"}});
- if(!url.pathname.startsWith("/api/auth/"))return fail(404,"NOT_FOUND","Endpoint not found.");
+
+
+ if(url.pathname==="/api/products"&&request.method==="GET"){
+  const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
+  if(category&&!["car_parts","motorcycle_parts","workshop"].includes(category))return fail(400,"INVALID_CATEGORY","Choose a valid product category.");
+  let sql="SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.status='active' AND m.status='active' AND u.status='active'";
+  const values:(string|number)[]=[];if(category){sql+=" AND p.category=?";values.push(category);}if(q){sql+=" AND (p.name LIKE ? OR p.fitment LIKE ? OR p.sku LIKE ?)";values.push("%"+q+"%","%"+q+"%","%"+q+"%");}
+  sql+=" ORDER BY p.created_at DESC LIMIT ?";values.push(limit);
+  const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:(result.results||[]).map(publicProduct)}});
+ }
+ if(url.pathname.startsWith("/api/products/")&&request.method==="GET"){
+  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
+  return row?json({data:{product:publicProduct(row)}}):fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
+ }
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
  if(request.method==="GET"&&url.pathname==="/api/auth/me"){const user=await readUser(request,env);return json({data:{user}});}
  if(request.method==="POST"&&url.pathname==="/api/auth/logout"){const token=cookieValue(request,"ph_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await digest(token)).run();return json({data:{success:true}},200,{"Set-Cookie":clearCookie()});}
@@ -42,7 +59,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   if(password.length<10||password.length>128)return fail(422,"WEAK_PASSWORD","Password must be at least 10 characters.");
   const existing=await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();if(existing)return fail(409,"EMAIL_EXISTS","An account with this email already exists.");
   const id=crypto.randomUUID(),salt=randomToken(16),hash=await passwordHash(password,salt);
-  try{await env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)").bind(id,fullName,email,phone,role,role==="merchant"?"pending":"active",hash,salt).run();}catch{return fail(409,"EMAIL_EXISTS","An account with this email already exists.");}
+  try{const statements=[env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)").bind(id,fullName,email,phone,role,role==="merchant"?"pending":"active",hash,salt)];if(role==="merchant")statements.push(env.DB.prepare("INSERT INTO merchant_profiles(id,user_id,store_name,status) VALUES(?,?,?,?)").bind(crypto.randomUUID(),id,fullName,"pending"));await env.DB.batch(statements);}catch{return fail(409,"EMAIL_EXISTS","An account with this email already exists.");}
   const session=await createSession(id,env);const row=await env.DB.prepare("SELECT * FROM users WHERE id=?").bind(id).first<any>();const maxAge=Math.floor((new Date(session.expires).getTime()-Date.now())/1000);
   return json({data:{user:publicUser(row)}},201,{"Set-Cookie":cookie(session.token,maxAge)});
  }
