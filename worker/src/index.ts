@@ -215,7 +215,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="products"&&merchantParts[4]==="status"&&request.method==="POST"){
    const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
    const status=String(body.status||"");if(!["active","archived"].includes(status))return fail(422,"INVALID_STATUS","Choose active or archived.");
-   const product=await env.DB.prepare("SELECT p.id,m.status AS merchant_status,u.status AS user_status FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=?").bind(id).first<any>();
+   const product=await env.DB.prepare("SELECT p.id,m.user_id AS merchant_user_id,m.status AS merchant_status,u.status AS user_status FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=?").bind(id).first<any>();
    if(!product)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
    if(status==="active"&&(product.merchant_status!=="active"||product.user_status!=="active"))return fail(409,"MERCHANT_NOT_APPROVED","Approve the merchant before activating product listings.");
    await env.DB.prepare("UPDATE products SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();await createNotification(env,product.merchant_user_id,"Product listing reviewed",status==="active"?"Your product listing is now visible in the marketplace.":"Your product listing was archived by marketplace moderation.",status==="active"?"success":"warning",admin.id);return json({data:{success:true,status}});
