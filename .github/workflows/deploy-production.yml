@@ -1,0 +1,8 @@
+name: Manual Production Deployment
+on:
+  workflow_dispatch:
+jobs:
+  instructions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Production deployment is intentionally not automated from this repository. Review and approve changes before deploying from Cloudflare Pages."
