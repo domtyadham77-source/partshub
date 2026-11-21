@@ -16,6 +16,7 @@ import MerchantDashboardPage from "../pages/MerchantDashboardPage";
 import MerchantProductsPage from "../pages/MerchantProductsPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminMerchantsPage from "../pages/AdminMerchantsPage";
+import AdminProductsPage from "../pages/AdminProductsPage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
   return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
@@ -35,6 +36,7 @@ export default function AppRouter() {
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
   <Route path="/admin" element={<RequireAuth roles={["admin"]}><AdminDashboardPage/></RequireAuth>}/>
   <Route path="/admin/merchants" element={<RequireAuth roles={["admin"]}><AdminMerchantsPage/></RequireAuth>}/>
+  <Route path="/admin/products" element={<RequireAuth roles={["admin"]}><AdminProductsPage/></RequireAuth>}/>
   <Route path="/merchant/products" element={<RequireAuth roles={["merchant"]}><MerchantProductsPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
   <Route path="/cart" element={<CartPage/>}/>

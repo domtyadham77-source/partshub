@@ -58,6 +58,11 @@ async function handle(request:Request,env:Env):Promise<Response>{
    ]);
    return json({data:{users:users?.total||0,pendingMerchants:merchants?.total||0,products:products?.total||0}});
   }
+  if(url.pathname==="/api/admin/products"&&request.method==="GET"){
+   const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
+   const result=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
+   return json({data:{items:(result.results||[]).map(publicProduct)}});
+  }
   if(url.pathname==="/api/admin/merchants"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"pending";if(!["pending","active","rejected","suspended"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid merchant status.");
    const result=await env.DB.prepare("SELECT m.id,m.store_name,m.description,m.contact_phone,m.status,m.created_at,u.full_name,u.email FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status=? ORDER BY m.created_at ASC LIMIT 100").bind(status).all<any>();
@@ -71,6 +76,14 @@ async function handle(request:Request,env:Env):Promise<Response>{
    if(!result.meta.changes)return fail(404,"MERCHANT_NOT_FOUND","Merchant profile was not found.");
    if(status==="active")await env.DB.prepare("UPDATE users SET status='active',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();
    return json({data:{success:true,status}});
+  }
+  if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="products"&&merchantParts[4]==="status"&&request.method==="POST"){
+   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const status=String(body.status||"");if(!["active","archived"].includes(status))return fail(422,"INVALID_STATUS","Choose active or archived.");
+   const product=await env.DB.prepare("SELECT p.id,m.status AS merchant_status,u.status AS user_status FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=?").bind(id).first<any>();
+   if(!product)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
+   if(status==="active"&&(product.merchant_status!=="active"||product.user_status!=="active"))return fail(409,"MERCHANT_NOT_APPROVED","Approve the merchant before activating product listings.");
+   await env.DB.prepare("UPDATE products SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();return json({data:{success:true,status}});
   }
   return fail(404,"NOT_FOUND","Admin endpoint not found.");
  }
