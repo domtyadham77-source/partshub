@@ -1,2 +1,0 @@
-export function formatDate(value:string|number|Date,locale="en-EG",options:Intl.DateTimeFormatOptions={dateStyle:"medium"}){const date=value instanceof Date?value:new Date(value);if(Number.isNaN(date.getTime()))return "—";return new Intl.DateTimeFormat(locale,options).format(date);}
-export function formatDateTime(value:string|number|Date,locale="en-EG"){return formatDate(value,locale,{dateStyle:"medium",timeStyle:"short"});}

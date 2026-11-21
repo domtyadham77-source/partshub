@@ -1,8 +1,0 @@
-name: Manual Preview Workflow
-on:
-  workflow_dispatch:
-jobs:
-  instructions:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Preview CI runs automatically on pushes. Cloudflare Pages deployment is managed in the Cloudflare dashboard."

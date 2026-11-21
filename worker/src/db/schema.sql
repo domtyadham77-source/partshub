@@ -1,1 +1,153 @@
+-- Reference snapshot of the Parts Hub D1 schema.
+-- Deploy migrations in order with: wrangler d1 migrations apply <database> --remote
+-- This file is documentation/reference only; migrations/ is the deployment source of truth.
 
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  setting_key TEXT PRIMARY KEY,
+  setting_value TEXT NOT NULL,
+  is_public INTEGER NOT NULL DEFAULT 0 CHECK (is_public IN (0, 1)),
+  updated_by TEXT,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  actor_user_id TEXT,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  details_json TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(details_json)),
+  ip_hash TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  phone TEXT,
+  role TEXT NOT NULL CHECK(role IN ('customer','merchant','admin')),
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','pending','suspended')),
+  password_hash TEXT NOT NULL,
+  password_salt TEXT NOT NULL,
+  password_iterations INTEGER NOT NULL DEFAULT 310000,
+  email_verified_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  last_seen_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  consumed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS auth_attempts (
+  id TEXT PRIMARY KEY,
+  key_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS merchant_profiles (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  store_name TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  contact_phone TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','active','rejected','suspended')),
+  business_type TEXT NOT NULL DEFAULT 'parts_store' CHECK(business_type IN ('parts_store','garage','maintenance_center','motorcycle_workshop')),
+  city TEXT NOT NULL DEFAULT '',
+  area TEXT NOT NULL DEFAULT '',
+  address_line TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  merchant_id TEXT NOT NULL REFERENCES merchant_profiles(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  category TEXT NOT NULL CHECK(category IN ('car_parts','motorcycle_parts','workshop')),
+  fitment TEXT NOT NULL DEFAULT '',
+  sku TEXT,
+  description TEXT NOT NULL DEFAULT '',
+  price_piasters INTEGER NOT NULL CHECK(price_piasters > 0),
+  stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK(stock_quantity >= 0),
+  status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','active','archived')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS product_images (
+  id TEXT PRIMARY KEY,
+  product_id TEXT NOT NULL UNIQUE REFERENCES products(id) ON DELETE CASCADE,
+  content_type TEXT NOT NULL CHECK(content_type IN ('image/jpeg','image/png','image/webp')),
+  byte_size INTEGER NOT NULL CHECK(byte_size > 0 AND byte_size <= 1000000),
+  image_data BLOB NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  order_number TEXT NOT NULL UNIQUE,
+  customer_id TEXT NOT NULL REFERENCES users(id),
+  merchant_id TEXT NOT NULL REFERENCES merchant_profiles(id),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','accepted','rejected','processing','shipped','delivered','cancelled')),
+  subtotal_piasters INTEGER NOT NULL CHECK(subtotal_piasters >= 0),
+  shipping_fee_piasters INTEGER NOT NULL DEFAULT 0 CHECK(shipping_fee_piasters >= 0),
+  total_piasters INTEGER NOT NULL CHECK(total_piasters >= 0),
+  payment_method TEXT NOT NULL DEFAULT 'cash_on_delivery' CHECK(payment_method IN ('cash_on_delivery')),
+  payment_status TEXT NOT NULL DEFAULT 'unpaid' CHECK(payment_status IN ('unpaid','paid','refunded')),
+  recipient_name TEXT NOT NULL,
+  recipient_phone TEXT NOT NULL,
+  address_line TEXT NOT NULL,
+  city TEXT NOT NULL,
+  area TEXT NOT NULL DEFAULT '',
+  notes TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS order_items (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id TEXT NOT NULL REFERENCES products(id),
+  product_name TEXT NOT NULL,
+  sku TEXT,
+  unit_price_piasters INTEGER NOT NULL CHECK(unit_price_piasters > 0),
+  quantity INTEGER NOT NULL CHECK(quantity > 0),
+  line_total_piasters INTEGER NOT NULL CHECK(line_total_piasters > 0)
+);
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id TEXT PRIMARY KEY,
+  ticket_number TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  category TEXT NOT NULL CHECK(category IN ('order','account','payment','delivery','product','other')),
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','in_progress','resolved','closed')),
+  admin_note TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_by TEXT REFERENCES users(id),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'info' CHECK(type IN ('info','success','warning')),
+  read_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_auth_attempts_key_created ON auth_attempts(key_hash,created_at);
+CREATE INDEX IF NOT EXISTS idx_products_status_category ON products(status,category);
+CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id,created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id,created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);

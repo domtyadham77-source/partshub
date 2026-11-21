@@ -1,8 +1,0 @@
-name: Manual Preview Deployment
-on:
-  workflow_dispatch:
-jobs:
-  instructions:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Preview deployment is managed from the Cloudflare Pages dashboard. No deployment is performed by this workflow."
