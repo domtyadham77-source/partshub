@@ -22,7 +22,7 @@ async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:numbe
 }
 
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string};
-function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,createdAt:row.created_at};}
+function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
 async function merchantFor(request:Request,env:Env,allowPending=false){const user=await readUser(request,env);if(!user)return{error:fail(401,"UNAUTHENTICATED","Sign in to continue.")};if(user.role!=="merchant")return{error:fail(403,"MERCHANT_ONLY","A merchant account is required.")};const merchant=await env.DB.prepare("SELECT * FROM merchant_profiles WHERE user_id=?").bind(user.id).first<MerchantRow>();if(!merchant)return{error:fail(404,"MERCHANT_PROFILE_MISSING","Merchant profile was not found.")};if(merchant.status!=="active"&&!allowPending)return{error:fail(403,"MERCHANT_NOT_APPROVED","Your seller account must be approved before managing listings.")};return{user,merchant};}
 async function readUser(request:Request,env:Env){const token=cookieValue(request,"ph_session");if(!token)return null;const hash=await digest(token);const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(hash,new Date().toISOString()).first<any>();return row?publicUser(row):null;}
 async function createSession(userId:string,env:Env){const token=randomToken();const days=Math.min(30,Math.max(1,Number(env.SESSION_TTL_DAYS)||14));const expires=new Date(Date.now()+days*86400000).toISOString();await env.DB.prepare("INSERT INTO sessions(id,user_id,token_hash,expires_at) VALUES(?,?,?,?)").bind(crypto.randomUUID(),userId,await digest(token),expires).run();return {token,expires};}
@@ -33,16 +33,24 @@ async function handle(request:Request,env:Env):Promise<Response>{
  if(url.pathname==="/api/health")return json({data:{ok:true,service:"parts-hub-api"}});
 
 
+
+ if(url.pathname.startsWith("/api/images/")&&request.method==="GET"){
+  const imageId=url.pathname.slice("/api/images/".length);const row=await env.DB.prepare("SELECT pi.image_data,pi.content_type,p.status AS product_status,m.status AS merchant_status,m.user_id FROM product_images pi JOIN products p ON p.id=pi.product_id JOIN merchant_profiles m ON m.id=p.merchant_id WHERE pi.id=?").bind(imageId).first<any>();
+  if(!row)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
+  let allowed=row.product_status==="active"&&row.merchant_status==="active";if(!allowed){const user=await readUser(request,env);allowed=!!user&&user.role==="merchant"&&user.id===row.user_id;}
+  if(!allowed)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
+  return new Response(row.image_data,{status:200,headers:{"Content-Type":row.content_type,"Cache-Control":"public, max-age=3600","X-Content-Type-Options":"nosniff"}});
+ }
  if(url.pathname==="/api/products"&&request.method==="GET"){
   const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
   if(category&&!["car_parts","motorcycle_parts","workshop"].includes(category))return fail(400,"INVALID_CATEGORY","Choose a valid product category.");
-  let sql="SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.status='active' AND m.status='active' AND u.status='active'";
+  let sql="SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status='active' AND m.status='active' AND u.status='active'";
   const values:(string|number)[]=[];if(category){sql+=" AND p.category=?";values.push(category);}if(q){sql+=" AND (p.name LIKE ? OR p.fitment LIKE ? OR p.sku LIKE ?)";values.push("%"+q+"%","%"+q+"%","%"+q+"%");}
   sql+=" ORDER BY p.created_at DESC LIMIT ?";values.push(limit);
   const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:(result.results||[]).map(publicProduct)}});
  }
  if(url.pathname.startsWith("/api/products/")&&request.method==="GET"){
-  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
+  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
   return row?json({data:{product:publicProduct(row)}}):fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
  }
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
@@ -127,7 +135,7 @@ async function handle(request:Request,env:Env):Promise<Response>{
   }
   if(url.pathname==="/api/admin/products"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
-   const result=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
+   const result=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
    return json({data:{items:(result.results||[]).map(publicProduct)}});
   }
   if(url.pathname==="/api/admin/merchants"&&request.method==="GET"){
@@ -185,8 +193,20 @@ async function handle(request:Request,env:Env):Promise<Response>{
    if(!result.meta.changes){for(const reserved of reservedItems)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(reserved.quantity,reserved.id).run();return fail(409,"ORDER_UPDATED","This order was updated by another request. Refresh and try again.");}
    return json({data:{success:true,status:next}});
   }
+
+  const imageSegments=url.pathname.split("/").filter(Boolean);
+  if(imageSegments.length===5&&imageSegments[0]==="api"&&imageSegments[1]==="merchant"&&imageSegments[2]==="products"&&imageSegments[4]==="image"&&request.method==="POST"){
+   const productId=imageSegments[3],owned=await env.DB.prepare("SELECT id FROM products WHERE id=? AND merchant_id=?").bind(productId,merchant.id).first();if(!owned)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
+   let form:FormData;try{form=await request.formData()}catch{return fail(400,"INVALID_FORM","Upload a valid image file.");}
+   const file=form.get("image");if(!(file instanceof File))return fail(422,"IMAGE_REQUIRED","Choose an image to upload.");
+   if(!["image/jpeg","image/png","image/webp"].includes(file.type))return fail(422,"INVALID_IMAGE_TYPE","Only JPG, PNG, and WebP images are supported.");
+   if(file.size<1||file.size>1000000)return fail(413,"IMAGE_TOO_LARGE","Edited images must be 1 MB or smaller.");
+   const id=crypto.randomUUID(),bytes=new Uint8Array(await file.arrayBuffer());
+   await env.DB.prepare("INSERT INTO product_images(id,product_id,content_type,byte_size,image_data) VALUES(?,?,?,?,?) ON CONFLICT(product_id) DO UPDATE SET id=excluded.id,content_type=excluded.content_type,byte_size=excluded.byte_size,image_data=excluded.image_data,created_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')").bind(id,productId,file.type,file.size,bytes).run();
+   return json({data:{imageUrl:"/api/images/"+id}},201);
+  }
   if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT p.*,m.store_name FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
+   const rows=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
    return json({data:{items:(rows.results||[]).map(publicProduct)}});
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="POST"){
