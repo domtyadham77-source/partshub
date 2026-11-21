@@ -162,6 +162,17 @@ async function handle(request:Request,env:Env):Promise<Response>{
   }
 
 
+  if(url.pathname==="/api/admin/reports"&&request.method==="GET"){
+   const [orders,paid,pending,delivered,merchants,tickets]=await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS total,COALESCE(SUM(total_piasters),0) AS gross FROM orders").first<any>(),
+    env.DB.prepare("SELECT COALESCE(SUM(total_piasters),0) AS total FROM orders WHERE payment_status='paid'").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM orders WHERE status='pending'").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM orders WHERE status='delivered'").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM merchant_profiles WHERE status='active'").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM support_tickets WHERE status IN ('open','in_progress')").first<any>()
+   ]);
+   return json({data:{orderCount:orders?.total||0,grossOrderValuePiasters:orders?.gross||0,paidOrderValuePiasters:paid?.total||0,pendingOrders:pending?.total||0,deliveredOrders:delivered?.total||0,activeMerchants:merchants?.total||0,openSupportTickets:tickets?.total||0}});
+  }
   if(url.pathname==="/api/admin/notifications"&&request.method==="POST"){
    let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
    const userId=String(body.userId||""),title=String(body.title||"").trim(),message=String(body.message||"").trim(),type=String(body.type||"info");
