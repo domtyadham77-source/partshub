@@ -47,6 +47,33 @@ async function handle(request:Request,env:Env):Promise<Response>{
  }
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
 
+
+ if(url.pathname.startsWith("/api/admin/")){
+  const admin=await readUser(request,env);if(!admin)return fail(401,"UNAUTHENTICATED","Sign in to continue.");if(admin.role!=="admin"||admin.status!=="active")return fail(403,"ADMIN_ONLY","Administrator access is required.");
+  if(url.pathname==="/api/admin/overview"&&request.method==="GET"){
+   const [users,merchants,products]=await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) AS total FROM users").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM merchant_profiles WHERE status='pending'").first<any>(),
+    env.DB.prepare("SELECT COUNT(*) AS total FROM products").first<any>()
+   ]);
+   return json({data:{users:users?.total||0,pendingMerchants:merchants?.total||0,products:products?.total||0}});
+  }
+  if(url.pathname==="/api/admin/merchants"&&request.method==="GET"){
+   const status=url.searchParams.get("status")||"pending";if(!["pending","active","rejected","suspended"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid merchant status.");
+   const result=await env.DB.prepare("SELECT m.id,m.store_name,m.description,m.contact_phone,m.status,m.created_at,u.full_name,u.email FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status=? ORDER BY m.created_at ASC LIMIT 100").bind(status).all<any>();
+   return json({data:{items:result.results||[]}});
+  }
+  const merchantParts=url.pathname.split("/").filter(Boolean);
+  if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="merchants"&&merchantParts[4]==="status"&&request.method==="POST"){
+   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
+   const status=String(body.status||"");if(!["active","rejected","suspended"].includes(status))return fail(422,"INVALID_STATUS","Choose active, rejected, or suspended.");
+   const result=await env.DB.prepare("UPDATE merchant_profiles SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
+   if(!result.meta.changes)return fail(404,"MERCHANT_NOT_FOUND","Merchant profile was not found.");
+   if(status==="active")await env.DB.prepare("UPDATE users SET status='active',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();
+   return json({data:{success:true,status}});
+  }
+  return fail(404,"NOT_FOUND","Admin endpoint not found.");
+ }
  if(url.pathname.startsWith("/api/merchant/")){
   const isProfile=url.pathname==="/api/merchant/profile";
   const context=await merchantFor(request,env,isProfile&&(request.method==="GET"||request.method==="PATCH"));
