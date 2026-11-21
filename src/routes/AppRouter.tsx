@@ -17,6 +17,10 @@ import MerchantProductsPage from "../pages/MerchantProductsPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminMerchantsPage from "../pages/AdminMerchantsPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
+import CheckoutPage from "../pages/CheckoutPage";
+import OrdersPage from "../pages/OrdersPage";
+import OrderDetailsPage from "../pages/OrderDetailsPage";
+import MerchantOrdersPage from "../pages/MerchantOrdersPage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
   return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
@@ -38,10 +42,12 @@ export default function AppRouter() {
   <Route path="/admin/merchants" element={<RequireAuth roles={["admin"]}><AdminMerchantsPage/></RequireAuth>}/>
   <Route path="/admin/products" element={<RequireAuth roles={["admin"]}><AdminProductsPage/></RequireAuth>}/>
   <Route path="/merchant/products" element={<RequireAuth roles={["merchant"]}><MerchantProductsPage/></RequireAuth>}/>
+  <Route path="/merchant/orders" element={<RequireAuth roles={["merchant"]}><MerchantOrdersPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
   <Route path="/cart" element={<CartPage/>}/>
-  <Route path="/checkout" element={<InfoPage title="Checkout" description="Checkout will be enabled only after order validation, delivery options, and payment handling are implemented."/>}/>
-  <Route path="/orders" element={<InfoPage title="My orders" description="Order history and tracking will be available after the order API is connected."/>}/>
+  <Route path="/checkout" element={<RequireAuth><CheckoutPage/></RequireAuth>}/>
+  <Route path="/orders" element={<RequireAuth><OrdersPage/></RequireAuth>}/>
+  <Route path="/orders/:id" element={<RequireAuth><OrderDetailsPage/></RequireAuth>}/>
   <Route path="/support" element={<InfoPage title="How can we help?" description="Support resources and request handling are planned for the next marketplace stage."/>}/>
   <Route path="*" element={<MainLayout><NotFoundPage/></MainLayout>}/>
  </Routes>;

@@ -7,4 +7,6 @@ export const merchantService={
  listProducts:async()=>{const result=await apiRequest<{items:ApiProduct[]}>("/merchant/products");return result.items.map(map);},
  createProduct:(input:{name:string;category:"car_parts"|"motorcycle_parts"|"workshop";fitment:string;description:string;pricePiasters:number;stockQuantity:number;sku?:string})=>apiRequest<{id:string;status:string}>("/merchant/products",{method:"POST",body:input}),
  archiveProduct:(id:string)=>apiRequest<{success:true}>(`/merchant/products/${encodeURIComponent(id)}`,{method:"DELETE"}),
+ listOrders:()=>apiRequest<{items:Array<{id:string;order_number:string;status:string;total_piasters:number;created_at:string;customer_name:string;recipient_name:string;recipient_phone:string;address_line:string;city:string;area:string}>}>("/merchant/orders"),
+ updateOrder:(id:string,status:"accepted"|"rejected"|"processing"|"shipped"|"delivered")=>apiRequest<{success:true;status:string}>(`/merchant/orders/${encodeURIComponent(id)}`,{method:"POST",body:{status}}),
 };
