@@ -11,7 +11,7 @@ async function digest(value:string){return hex(await crypto.subtle.digest("SHA-2
 async function passwordHash(password:string,salt:string,iterations=310000){const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:Uint8Array.from(salt.match(/.{2}/g)!.map(x=>parseInt(x,16))),iterations,hash:"SHA-256"},key,256);return hex(bits);}
 function validEmail(value:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)&&value.length<=254;}
 function publicUser(row:any):PublicUser{return{id:row.id,fullName:row.full_name,email:row.email,phone:row.phone,role:row.role,status:row.status,createdAt:row.created_at};}
-async function createNotification(env:Env,userId:string,title:string,message:string,type:"info"|"success"|"warning"="info",createdBy:string|null=null){await env.DB.prepare("INSERT INTO notifications(id,user_id,created_by,title,message,type) VALUES(?,?,?,?,?,?)").bind(crypto.randomUUID(),userId,createdBy,title,message,type).run();}
+async function createNotification(env:Env,userId:string,title:string,message:string,type:"info"|"success"|"warning"="info",createdBy:string|null=null){try{await env.DB.prepare("INSERT INTO notifications(id,user_id,created_by,title,message,type) VALUES(?,?,?,?,?,?)").bind(crypto.randomUUID(),userId,createdBy,title,message,type).run();}catch{/* Notifications must never block the primary action. */}}
 async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:number,windowSeconds=900){
  const ip=request.headers.get("CF-Connecting-IP")||"unknown";
  const key=await digest(scope+":"+ip);
