@@ -1,5 +1,5 @@
 import { apiRequest } from "./api";
-export type AdminMerchant={id:string;store_name:string;description:string;contact_phone:string|null;status:string;created_at:string;full_name:string;email:string};
+export type AdminMerchant={id:string;store_name:string;description:string;contact_phone:string|null;business_type:string;city:string;area:string;status:string;created_at:string;full_name:string;email:string};
 export const adminService={
  overview:()=>apiRequest<{users:number;pendingMerchants:number;products:number}>("/admin/overview"),
  reports:()=>apiRequest<{orderCount:number;grossOrderValuePiasters:number;paidOrderValuePiasters:number;pendingOrders:number;deliveredOrders:number;activeMerchants:number;openSupportTickets:number}>("/admin/reports"),
