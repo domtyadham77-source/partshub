@@ -10,4 +10,4 @@ export type User = {
   createdAt: string;
 };
 export type AuthResponse = { user: User };
-export type RegisterInput = { fullName: string; email: string; phone?: string; password: string; role: "customer" | "merchant" };
+export type RegisterInput = { fullName: string; email: string; phone?: string; password: string; role: "customer" | "merchant"; businessType?: "parts_store"|"garage"|"maintenance_center"|"motorcycle_workshop" };

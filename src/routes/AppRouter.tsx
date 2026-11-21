@@ -23,6 +23,7 @@ import AdminSupportPage from "../pages/AdminSupportPage";
 import SupportPage from "../pages/SupportPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import AdminNotificationsPage from "../pages/AdminNotificationsPage";
+import WorkshopsPage from "../pages/WorkshopsPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
@@ -38,7 +39,7 @@ export default function AppRouter() {
   <Route path="/cars" element={<CatalogPage initialCategory="Car parts"/>}/>
   <Route path="/motorcycles" element={<CatalogPage initialCategory="Motorcycle parts"/>}/>
   <Route path="/products/:id" element={<ProductDetailsPage/>}/>
-  <Route path="/workshops" element={<InfoPage title="Garages & workshops" description="Find maintenance centers and workshops. Provider profiles, services, and booking will be added after the marketplace foundation."/>}/>
+  <Route path="/workshops" element={<WorkshopsPage/>}/>
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
   <Route path="/login" element={<LoginPage/>}/>
   <Route path="/register" element={<RegisterPage/>}/>
