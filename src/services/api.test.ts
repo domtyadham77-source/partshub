@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { apiRequest, ApiRequestError } from "./api";
+import { apiRequest } from "./api";
 describe("apiRequest",()=>{
  afterEach(()=>vi.unstubAllGlobals());
  it("sends JSON with credentials and returns data",async()=>{
