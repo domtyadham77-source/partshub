@@ -1,1 +1,26 @@
-
+import { useEffect,useState,type FormEvent } from "react";
+import { Plus,Archive,RefreshCw,Boxes } from "lucide-react";
+import MainLayout from "../components/layout/MainLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import { merchantService,type MerchantProduct } from "../services/merchants";
+import { ApiRequestError } from "../services/api";
+import { formatCurrency } from "../utils/formatCurrency";
+import { useAuth } from "../contexts/AuthContext";
+type Category="car_parts"|"motorcycle_parts"|"workshop";
+export default function MerchantProductsPage(){
+ const {user}=useAuth();const [items,setItems]=useState<MerchantProduct[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [busy,setBusy]=useState(false);const [showForm,setShowForm]=useState(false);
+ const [name,setName]=useState("");const [category,setCategory]=useState<Category>("car_parts");const [fitment,setFitment]=useState("");const [description,setDescription]=useState("");const [price,setPrice]=useState("");const [stock,setStock]=useState("1");
+ async function load(){setLoading(true);setError("");try{setItems(await merchantService.listProducts())}catch(err){setError(err instanceof ApiRequestError?err.message:"Unable to load your inventory.")}finally{setLoading(false)}}
+ useEffect(()=>{if(user?.status==="active")void load();else setLoading(false)},[user?.status]);
+ async function create(e:FormEvent){e.preventDefault();setError("");setBusy(true);try{await merchantService.createProduct({name:name.trim(),category,fitment:fitment.trim(),description:description.trim(),pricePiasters:Math.round(Number(price)*100),stockQuantity:Number(stock)});setName("");setFitment("");setDescription("");setPrice("");setStock("1");setShowForm(false);await load()}catch(err){setError(err instanceof ApiRequestError?err.message:"Unable to create listing.")}finally{setBusy(false)}}
+ async function archive(id:string){if(!window.confirm("Archive this listing? It will no longer appear in the public catalog."))return;try{await merchantService.archiveProduct(id);await load()}catch(err){setError(err instanceof Error?err.message:"Unable to archive listing.")}}
+ if(user?.status!=="active")return <MainLayout><section className="route-panel"><Badge tone="orange">SELLER APPROVAL REQUIRED</Badge><h1>Your inventory tools are locked.</h1><p>Merchant access is enabled after your seller account is reviewed and approved.</p></section></MainLayout>;
+ return <MainLayout><section className="merchant-products"><div className="merchant-heading"><div><span className="eyebrow">SELLER WORKSPACE</span><h1>Your inventory.</h1><p>Add and manage the listings in your store.</p></div><Button onClick={()=>setShowForm(value=>!value)}><Plus size={16}/>{showForm?"Close form":"Add product"}</Button></div>
+ {error&&<div className="auth-error" role="alert">{error}</div>}
+ {showForm&&<form className="merchant-product-form" onSubmit={create}><h2>New product listing</h2><Input label="Product name" name="product-name" required minLength={3} maxLength={140} value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Ceramic brake pads"/><div className="ph-field"><label htmlFor="product-category">Category</label><select id="product-category" className="ph-input" value={category} onChange={e=>setCategory(e.target.value as Category)}><option value="car_parts">Car parts</option><option value="motorcycle_parts">Motorcycle parts</option><option value="workshop">Workshop supplies</option></select></div><Input label="Vehicle / fitment" name="fitment" maxLength={160} value={fitment} onChange={e=>setFitment(e.target.value)} placeholder="Make, model, year or universal"/><Input label="Price (EGP)" name="price" type="number" min="0.01" step="0.01" required value={price} onChange={e=>setPrice(e.target.value)} placeholder="0.00"/><Input label="Available quantity" name="stock" type="number" min="0" max="1000000" step="1" required value={stock} onChange={e=>setStock(e.target.value)}/><div className="ph-field"><label htmlFor="product-description">Description</label><textarea id="product-description" className="ph-input" rows={4} maxLength={3000} value={description} onChange={e=>setDescription(e.target.value)} placeholder="Add condition, specifications and compatibility notes."/></div><p className="form-hint">New listings are saved as drafts and won't appear publicly until they are reviewed and activated.</p><Button type="submit" disabled={busy}>{busy?"Saving…":"Save draft"}</Button></form>}
+ <div className="merchant-list-heading"><h2><Boxes size={18}/> Listings</h2><button onClick={()=>void load()} aria-label="Refresh listings"><RefreshCw size={15}/></button></div>
+ {loading?<div className="catalog-state">Loading inventory…</div>:items.length===0?<div className="catalog-state">No listings yet. Add your first product to get started.</div>:<div className="merchant-list">{items.map(item=><article key={item.id}><div><b>{item.name}</b><small>{item.category} · {item.fitment||"No fitment entered"}</small><span>{formatCurrency(item.price)} · Qty {item.stockQuantity}</span></div><div className="merchant-list-actions"><Badge tone={item.status==="active"?"success":"neutral"}>{item.status}</Badge><button onClick={()=>void archive(item.id)} aria-label={`Archive ${item.name}`}><Archive size={15}/></button></div></article>)}</div>}
+ </section></MainLayout>;
+}
