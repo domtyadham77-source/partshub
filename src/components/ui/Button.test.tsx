@@ -1,1 +1,1 @@
-
+import {describe,expect,it,vi} from "vitest";import {fireEvent,render,screen} from "@testing-library/react";import Button from "./Button";describe("Button",()=>{it("handles clicks",()=>{const fn=vi.fn();render(<Button onClick={fn}>Add part</Button>);fireEvent.click(screen.getByRole("button",{name:"Add part"}));expect(fn).toHaveBeenCalledOnce();});it("supports variants",()=>{render(<Button variant="secondary">Cancel</Button>);expect(screen.getByRole("button")).toHaveClass("ph-button-secondary");});});
