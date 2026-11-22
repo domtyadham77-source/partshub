@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {env} from "./env";describe("environment config",()=>{it("uses same-origin API by default",()=>{expect(env.apiBaseUrl).toBe("/api");});it("exposes production mode as a boolean",()=>{expect(typeof env.isProduction).toBe("boolean");});});
