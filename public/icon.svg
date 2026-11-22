@@ -1,6 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="112" fill="#111315"/>
-<path d="M256 72l32 22 38-5 21 32 37 13 7 38 27 28-11 37 11 37-27 28-7 38-37 13-21 32-38-5-32 22-32-22-38 5-21-32-37-13-7-38-27-28 11-37-11-37 27-28 7-38 37-13 21-32 38 5z" fill="#ff9500"/>
-<circle cx="256" cy="256" r="92" fill="#111315"/>
-<path d="M218 196h76v34h-76zm-18 52h112v34H200zm18 52h76v34h-76z" fill="#ff9500"/>
+  <rect width="512" height="512" rx="104" fill="#111315"/>
+  <rect x="7" y="7" width="498" height="498" rx="98" fill="none" stroke="#FF9500" stroke-width="10"/>
+  <!-- Front-facing parcel: the box itself is the icon -->
+  <path d="M74 150 126 105h260l52 45v258q0 16-16 16H90q-16 0-16-16Z" fill="#FF9500"/>
+  <path d="M74 150 126 105h260l52 45Z" fill="#FFB13B"/>
+  <path d="M74 150h364" fill="none" stroke="#D96B00" stroke-width="7"/>
+  <path d="M230 105h52v45h-52z" fill="#242424"/>
+  <path d="M230 150h52v53q0 8-8 8h-36q-8 0-8-8z" fill="#242424"/>
+  <!-- Automotive emblem: car + gear + wrench, printed on the box -->
+  <g fill="#111315">
+    <path d="M126 271c7-18 22-34 43-43l38-17c12-6 24-9 38-9h38c17 0 31 6 43 17l31 29 28 8c12 4 19 14 19 27v17h-18c-4-19-19-32-38-32s-34 13-38 32H183c-4-19-19-32-38-32s-34 13-38 32H91v-13c0-10 7-19 17-22zm95-51-38 17h143l-19-17c-8-7-18-11-29-11h-32c-9 0-17 3-25 11z"/>
+    <circle cx="145" cy="299" r="19" fill="#FF9500"/>
+    <circle cx="348" cy="299" r="19" fill="#FF9500"/>
+  </g>
+  <!-- gear ring -->
+  <circle cx="300" cy="294" r="83" fill="none" stroke="#111315" stroke-width="23" stroke-dasharray="23 10" stroke-linecap="square"/>
+  <circle cx="300" cy="294" r="58" fill="#FF9500"/>
+  <!-- wrench -->
+  <path d="M336 258a31 31 0 0 0 39 39l-63 63a17 17 0 0 1-24-24l63-63a31 31 0 0 0-15-15zm-54 91a8 8 0 1 0 0 16 8 8 0 0 0 0-16z" fill="#111315"/>
+  <path d="M357 245a24 24 0 0 0 30 30l-18-18 12-12 18 18a24 24 0 0 0-30-30l-12 12z" fill="#111315"/>
 </svg>
