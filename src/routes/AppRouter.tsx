@@ -11,6 +11,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
+import SettingsPage from "../pages/SettingsPage";
 import RequireAuth from "../components/auth/RequireAuth";
 import MerchantDashboardPage from "../pages/MerchantDashboardPage";
 import MerchantProductsPage from "../pages/MerchantProductsPage";
@@ -48,6 +49,7 @@ export default function AppRouter() {
   <Route path="/register" element={<RegisterPage/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/account" element={<AccountPage/>}/>
+  <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
   <Route path="/admin" element={<RequireAuth roles={["admin"]}><AdminDashboardPage/></RequireAuth>}/>
   <Route path="/admin/merchants" element={<RequireAuth roles={["admin"]}><AdminMerchantsPage/></RequireAuth>}/>
@@ -64,7 +66,7 @@ export default function AppRouter() {
   <Route path="/merchant/profile" element={<RequireAuth roles={["merchant"]}><MerchantProfilePage/></RequireAuth>}/>
   <Route path="/notifications" element={<RequireAuth><NotificationsPage/></RequireAuth>}/>
   <Route path="/favorites" element={<FavoritesPage/>}/>
-  <Route path="/cart" element={<CartPage/>}/>
+  <Route path="/cart" element={<RequireAuth><CartPage/></RequireAuth>}/>
   <Route path="/checkout" element={<RequireAuth><CheckoutPage/></RequireAuth>}/>
   <Route path="/orders" element={<RequireAuth><OrdersPage/></RequireAuth>}/>
   <Route path="/orders/:id" element={<RequireAuth><OrderDetailsPage/></RequireAuth>}/>
