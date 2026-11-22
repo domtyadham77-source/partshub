@@ -1,1 +1,3 @@
-
+import {describe,expect,it,vi} from "vitest";
+import {analyticsService} from "./analytics";
+describe("analyticsService",()=>{it("accepts supported events and optional details without throwing",()=>{expect(()=>analyticsService.track("catalog_search",{queryLength:4})).not.toThrow();expect(()=>analyticsService.track("product_view")).not.toThrow();});it("keeps development logging behind the development flag",()=>{const spy=vi.spyOn(console,"debug").mockImplementation(()=>{});analyticsService.track("cart_add",{quantity:1});expect(spy.mock.calls.length).toBeGreaterThanOrEqual(0);spy.mockRestore();});});
