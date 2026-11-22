@@ -16,7 +16,7 @@ export default function Header(){
  const close=()=>setMenuOpen(false);
  const languageLabel=language==="en"?"AR":"EN";
  return <header className="shared-header">
-  <Link className="brand" to="/" aria-label="Parts Hub home" onClick={close}><span className="brand-mark"><Wrench size={20}/></span><span>PARTS<span className="brand-accent">HUB</span></span></Link>
+  <Link className="brand" to="/" aria-label="Parts Hub home" onClick={close}><img className="brand-logo" src="/brand/parts-hub-wordmark.png" alt="Parts Hub"/></Link>
   <nav className="shared-desktop-nav" aria-label="Main navigation"><NavLink to="/cars">{t("Car parts")}</NavLink><NavLink to="/motorcycles">{t("Motorcycles")}</NavLink><NavLink to="/workshops">{t("Workshops")}</NavLink><NavLink to="/sell">{t("Sell with us")}</NavLink></nav>
   <div className="shared-header-actions">
    <button type="button" className="language-toggle language-toggle-compact" onClick={()=>setLanguage(language==="en"?"ar":"en")} aria-label={language==="en"?"Switch to Arabic":"Switch to English"}>{languageLabel}</button>
