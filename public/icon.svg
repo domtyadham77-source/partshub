@@ -1,22 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="104" fill="#111315"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Parts Hub app icon</title>
+  <desc id="desc">A front-facing orange shipping box with the Parts Hub automotive logo printed on its front.</desc>
+  <defs>
+    <linearGradient id="box" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF9F1A"/>
+      <stop offset="1" stop-color="#F47700"/>
+    </linearGradient>
+    <linearGradient id="gear" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D5D7DA"/>
+      <stop offset="1" stop-color="#73777D"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="104" fill="#08090A"/>
   <rect x="7" y="7" width="498" height="498" rx="98" fill="none" stroke="#FF9500" stroke-width="10"/>
-  <!-- Front-facing parcel: the box itself is the icon -->
-  <path d="M74 150 126 105h260l52 45v258q0 16-16 16H90q-16 0-16-16Z" fill="#FF9500"/>
-  <path d="M74 150 126 105h260l52 45Z" fill="#FFB13B"/>
-  <path d="M74 150h364" fill="none" stroke="#D96B00" stroke-width="7"/>
-  <path d="M230 105h52v45h-52z" fill="#242424"/>
-  <path d="M230 150h52v53q0 8-8 8h-36q-8 0-8-8z" fill="#242424"/>
-  <!-- Automotive emblem: car + gear + wrench, printed on the box -->
-  <g fill="#111315">
-    <path d="M126 271c7-18 22-34 43-43l38-17c12-6 24-9 38-9h38c17 0 31 6 43 17l31 29 28 8c12 4 19 14 19 27v17h-18c-4-19-19-32-38-32s-34 13-38 32H183c-4-19-19-32-38-32s-34 13-38 32H91v-13c0-10 7-19 17-22zm95-51-38 17h143l-19-17c-8-7-18-11-29-11h-32c-9 0-17 3-25 11z"/>
-    <circle cx="145" cy="299" r="19" fill="#FF9500"/>
-    <circle cx="348" cy="299" r="19" fill="#FF9500"/>
+  <!-- Front-facing parcel -->
+  <path d="M62 154 120 105h272l58 49v257q0 18-18 18H80q-18 0-18-18Z" fill="url(#box)"/>
+  <path d="M62 154 120 105h272l58 49Z" fill="#FFAD35"/>
+  <path d="M62 154h388" stroke="#D96B00" stroke-width="6" fill="none"/>
+  <path d="M230 105h52v49h-52z" fill="#242424"/>
+  <path d="M230 154h52v43q0 9-9 9h-34q-9 0-9-9z" fill="#242424"/>
+  <!-- The exact Parts Hub wordmark concept: car roof, italic name, orange Hub frame, gear -->
+  <g transform="translate(0 2)">
+    <path d="M107 273c20-31 53-48 99-51l39-21c20-11 43-16 67-13 28 3 51 15 75 33l26 19"
+      fill="none" stroke="#111315" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M109 273c25-30 57-43 98-45l39-21c20-10 43-14 65-11 26 3 48 14 70 31"
+      fill="none" stroke="#FF9500" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M155 250h198" stroke="#111315" stroke-width="5" stroke-linecap="round"/>
+    <g transform="translate(405 275)">
+      <path d="M-4-49 8-49l7 13 13 4 12-7 9 9-7 12 4 13 13 7v13l-13 7-4 13 7 12-9 9-12-7-13 4-7 13H-4l-7-13-13-4-12 7-9-9 7-12-4-13-13-7v-13l13-7 4-13-7-12 9-9 12 7 13-4z"
+        fill="url(#gear)" stroke="#25282B" stroke-width="5" stroke-linejoin="round"/>
+      <circle r="22" fill="#202326" stroke="#8A8E93" stroke-width="7"/>
+    </g>
+    <path d="M116 260q0-12 14-12h245q15 0 15 15v39q0 15-15 15H130q-14 0-14-14z"
+      fill="#111315" stroke="#FF9500" stroke-width="5"/>
+    <text x="135" y="298" fill="#F4F4F4" font-family="Arial, Helvetica, sans-serif" font-size="45" font-style="italic" font-weight="800" letter-spacing="-2">Parts</text>
+    <path d="M275 260q0-12 13-12h83q13 0 13 13v38q0 13-13 13h-83q-13 0-13-13z"
+      fill="#FF9500" stroke="#FF9500" stroke-width="2"/>
+    <text x="284" y="298" fill="#111315" font-family="Arial, Helvetica, sans-serif" font-size="43" font-style="italic" font-weight="900" letter-spacing="-2">Hub</text>
+    <path d="M121 323h254" stroke="#111315" stroke-width="5" stroke-linecap="round"/>
+    <path d="M135 330h218" stroke="#FF9500" stroke-width="3" stroke-linecap="round"/>
   </g>
-  <!-- gear ring -->
-  <circle cx="300" cy="294" r="83" fill="none" stroke="#111315" stroke-width="23" stroke-dasharray="23 10" stroke-linecap="square"/>
-  <circle cx="300" cy="294" r="58" fill="#FF9500"/>
-  <!-- wrench -->
-  <path d="M336 258a31 31 0 0 0 39 39l-63 63a17 17 0 0 1-24-24l63-63a31 31 0 0 0-15-15zm-54 91a8 8 0 1 0 0 16 8 8 0 0 0 0-16z" fill="#111315"/>
-  <path d="M357 245a24 24 0 0 0 30 30l-18-18 12-12 18 18a24 24 0 0 0-30-30l-12 12z" fill="#111315"/>
 </svg>
