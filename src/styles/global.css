@@ -53,3 +53,8 @@ html[dir=rtl] .moto-feature{direction:rtl}
 html[dir=rtl] .moto-feature img{mask-image:linear-gradient(270deg,transparent,#000 22%)}
 @media(max-width:900px){.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-card{height:220px}}
 @media(max-width:600px){.vehicle-discovery{padding:10px 0 55px}.vehicle-card-grid{gap:9px}.vehicle-card{height:180px;border-radius:12px}.vehicle-card-copy{left:11px;right:11px;bottom:12px}.vehicle-card-copy strong{font-size:16px}.vehicle-card-copy em{font-size:9px}.vehicle-card-copy small{font-size:7px}.vehicle-card-arrow{top:10px;right:10px;width:27px;height:27px}.moto-feature{grid-template-columns:1fr}.moto-feature>div{padding:23px}.moto-feature img{min-height:165px;max-height:190px;mask-image:linear-gradient(180deg,transparent,#000 18%)}html[dir=rtl] .moto-feature img{mask-image:linear-gradient(180deg,transparent,#000 18%)}}
+
+/* Expanded vehicle category grid */
+.vehicle-card-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1100px){.vehicle-card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
