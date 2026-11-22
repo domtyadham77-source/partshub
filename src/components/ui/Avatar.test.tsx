@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {render,screen} from "@testing-library/react";import Avatar from "./Avatar";describe("Avatar",()=>{it("shows initials",()=>{render(<Avatar name="Parts Hub"/>);expect(screen.getByLabelText("Parts Hub")).toHaveTextContent("PH");});it("renders an image",()=>{render(<Avatar name="Parts Hub" src="/avatar.png"/>);expect(screen.getByRole("img")).toHaveAttribute("src","/avatar.png");});});

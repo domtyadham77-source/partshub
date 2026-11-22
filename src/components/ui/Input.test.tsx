@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {render,screen} from "@testing-library/react";import Input from "./Input";describe("Input",()=>{it("connects label and input",()=>{render(<Input label="Email address" name="email" type="email"/>);expect(screen.getByLabelText("Email address")).toHaveAttribute("type","email");});it("announces errors",()=>{render(<Input label="Password" name="password" error="Required"/>);expect(screen.getByLabelText("Password")).toHaveAttribute("aria-invalid","true");expect(screen.getByText("Required")).toBeInTheDocument();});});

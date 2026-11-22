@@ -1,1 +1,1 @@
-
+import {describe,expect,it,vi} from "vitest";import {fireEvent,render,screen} from "@testing-library/react";import Toast from "./Toast";describe("Toast",()=>it("shows and dismisses a message",()=>{const fn=vi.fn();render(<Toast message="Saved successfully" type="success" onClose={fn}/>);expect(screen.getByRole("status")).toHaveTextContent("Saved successfully");fireEvent.click(screen.getByRole("button",{name:/dismiss notification/i}));expect(fn).toHaveBeenCalledOnce();}));

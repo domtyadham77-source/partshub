@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {render,screen} from "@testing-library/react";import Badge from "./Badge";describe("Badge",()=>{it("renders its label",()=>{render(<Badge>Verified seller</Badge>);expect(screen.getByText("Verified seller")).toBeInTheDocument();});it("applies tone",()=>{const {container}=render(<Badge tone="success">Active</Badge>);expect(container.firstChild).toHaveClass("ph-badge-success");});});

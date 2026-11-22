@@ -1,1 +1,1 @@
-
+export const routes={home:"/",cars:"/cars",motorcycles:"/motorcycles",workshops:"/workshops",product:(id:string)=>`/products/${encodeURIComponent(id)}`,cart:"/cart",checkout:"/checkout",orders:"/orders",order:(id:string)=>`/orders/${encodeURIComponent(id)}`,login:"/login",register:"/register",forgotPassword:"/forgot-password",account:"/account",favorites:"/favorites",notifications:"/notifications",support:"/support",merchant:"/merchant",admin:"/admin"};

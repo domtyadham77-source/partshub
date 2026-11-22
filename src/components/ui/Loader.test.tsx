@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {render,screen} from "@testing-library/react";import Loader from "./Loader";describe("Loader",()=>it("exposes a status label",()=>{render(<Loader label="Loading inventory"/>);expect(screen.getByRole("status")).toHaveTextContent("Loading inventory");}));

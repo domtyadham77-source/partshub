@@ -1,1 +1,1 @@
-
+import {describe,expect,it,vi} from "vitest";import {render,screen} from "@testing-library/react";import MotorcyclesPage from "./MotorcyclesPage";vi.mock("./CatalogPage",()=>({default:({initialCategory}:{initialCategory:string})=><div>Catalog category: {initialCategory}</div>}));describe("MotorcyclesPage",()=>it("filters to motorcycle parts",()=>{render(<MotorcyclesPage/>);expect(screen.getByText("Catalog category: Motorcycle parts")).toBeInTheDocument();}));

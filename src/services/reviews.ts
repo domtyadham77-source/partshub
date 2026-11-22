@@ -1,1 +1,2 @@
-
+import {apiRequest} from "./api";import type {CreateReviewInput,ProductReview} from "../types/review";
+export const reviewsService={list:async(productId:string):Promise<ProductReview[]>=>{const result=await apiRequest<{items:ProductReview[]}>(`/products/${encodeURIComponent(productId)}/reviews`);return result.items;},create:(productId:string,input:CreateReviewInput)=>apiRequest<{review:ProductReview}>(`/products/${encodeURIComponent(productId)}/reviews`,{method:"POST",body:input})};
