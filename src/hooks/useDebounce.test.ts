@@ -1,1 +1,1 @@
-
+import {afterEach,describe,expect,it,vi} from "vitest";import {act,renderHook} from "@testing-library/react";import {useDebounce} from "./useDebounce";describe("useDebounce",()=>{afterEach(()=>vi.useRealTimers());it("updates after delay",()=>{vi.useFakeTimers();const {result,rerender}=renderHook(({value})=>useDebounce(value,200),{initialProps:{value:"first"}});rerender({value:"second"});expect(result.current).toBe("first");act(()=>vi.advanceTimersByTime(200));expect(result.current).toBe("second");});});
