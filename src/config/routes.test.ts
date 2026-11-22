@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {routes} from "./routes";describe("route helpers",()=>{it("exposes catalog routes",()=>{expect(routes.home).toBe("/");expect(routes.cars).toBe("/cars");expect(routes.motorcycles).toBe("/motorcycles");});it("encodes identifiers",()=>{expect(routes.product("part/one")).toBe("/products/part%2Fone");expect(routes.order("order 1")).toBe("/orders/order%201");});});
