@@ -29,3 +29,5 @@ html[dir=rtl] .hamburger-panel{right:auto;left:0}
 .menu-secondary-action{border:1px solid var(--border);background:transparent;color:var(--text)}
 @keyframes menu-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:650px){.shared-header{height:66px}.shared-desktop-nav{display:none}.shared-header-actions{gap:6px}.header-icon-button,.hamburger-button{width:35px;height:35px}.hamburger-panel{position:fixed;top:74px;right:14px}html[dir=rtl] .hamburger-panel{right:auto;left:14px}}
+
+.settings-option{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:25px;padding:18px;border:1px solid var(--border);border-radius:12px;background:#202428}.settings-option strong{font-size:13px}.settings-option p{margin:6px 0 0;color:var(--muted);font-size:11px}.detail-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
