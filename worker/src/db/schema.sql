@@ -13,3 +13,24 @@ CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY,order_number TEXT NOT NULL
 CREATE TABLE IF NOT EXISTS order_items(id TEXT PRIMARY KEY,order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,product_id TEXT NOT NULL REFERENCES products(id),product_name TEXT NOT NULL,sku TEXT,unit_price_piasters INTEGER NOT NULL CHECK(unit_price_piasters>0),quantity INTEGER NOT NULL CHECK(quantity>0),line_total_piasters INTEGER NOT NULL CHECK(line_total_piasters>0));
 CREATE TABLE IF NOT EXISTS support_tickets(id TEXT PRIMARY KEY,ticket_number TEXT NOT NULL UNIQUE,user_id TEXT NOT NULL REFERENCES users(id),category TEXT NOT NULL CHECK(category IN ('order','account','payment','delivery','product','other')),subject TEXT NOT NULL,message TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','in_progress','resolved','closed')),admin_note TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
 CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,created_by TEXT REFERENCES users(id),title TEXT NOT NULL,message TEXT NOT NULL,type TEXT NOT NULL DEFAULT 'info' CHECK(type IN ('info','success','warning')),read_at TEXT,created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+
+
+-- Added by migration 0011_user_favorites_reviews.sql.
+CREATE TABLE IF NOT EXISTS favorites (
+ id TEXT PRIMARY KEY,
+ user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+ UNIQUE(user_id,product_id)
+);
+CREATE INDEX IF NOT EXISTS idx_favorites_user_created ON favorites(user_id,created_at);
+CREATE TABLE IF NOT EXISTS reviews (
+ id TEXT PRIMARY KEY,
+ product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+ user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+ comment TEXT NOT NULL DEFAULT '',
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+ UNIQUE(product_id,user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_reviews_product_created ON reviews(product_id,created_at);
