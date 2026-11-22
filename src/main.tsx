@@ -8,26 +8,7 @@ import { FavoritesProvider } from "./contexts/FavoritesContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ToastProvider } from "./contexts/ToastContext";
-import "./styles/variables.css";
-import "./styles/global.css";
-import "./styles/components.css";
-import "./styles/catalog.css";
-import "./styles/cart.css";
-import "./styles/favorites.css";
-import "./styles/merchant.css";
-import "./styles/orders.css";
-import "./styles/support.css";
-import "./styles/notifications.css";
-import "./styles/workshops.css";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode><BrowserRouter><ToastProvider><AuthProvider><NotificationProvider><CartProvider><FavoritesProvider><AppRouter /></FavoritesProvider></CartProvider></NotificationProvider></AuthProvider></ToastProvider></BrowserRouter></React.StrictMode>
-);
-
-if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch((error) => {
-      console.error("Service worker registration failed:", error);
-    });
-  });
-}
+import {LanguageProvider} from "./contexts/LanguageContext";
+import "./styles/variables.css";import "./styles/global.css";import "./styles/components.css";import "./styles/catalog.css";import "./styles/cart.css";import "./styles/favorites.css";import "./styles/merchant.css";import "./styles/orders.css";import "./styles/support.css";import "./styles/notifications.css";import "./styles/workshops.css";
+ReactDOM.createRoot(document.getElementById("root")!).render(<React.StrictMode><BrowserRouter><LanguageProvider><ToastProvider><AuthProvider><NotificationProvider><CartProvider><FavoritesProvider><AppRouter/></FavoritesProvider></CartProvider></NotificationProvider></AuthProvider></ToastProvider></LanguageProvider></BrowserRouter></React.StrictMode>);
+if("serviceWorker"in navigator&&import.meta.env.PROD){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(error=>console.error("Service worker registration failed:",error))})}
