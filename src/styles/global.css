@@ -34,3 +34,7 @@ html[dir="rtl"] .language-toggle{direction:rtl}
 .product-grid>[data-scroll-reveal]:nth-child(5){--reveal-delay:70ms}
 .product-grid>[data-scroll-reveal]:nth-child(6){--reveal-delay:140ms}
 @media(prefers-reduced-motion:reduce){[data-scroll-reveal],[data-scroll-reveal].is-visible{opacity:1;transform:none;transition:none;will-change:auto}}
+
+/* Keep the approved wordmark consistent in every footer. */
+.site-footer .brand-logo,.shared-footer .brand-logo{display:block;width:auto;height:34px;max-width:150px;object-fit:contain}
+@media(max-width:600px){.site-footer .brand-logo,.shared-footer .brand-logo{height:32px;max-width:132px}}
