@@ -1,1 +1,1 @@
-
+import {describe,expect,it} from "vitest";import {render,screen} from "@testing-library/react";import Footer from "./Footer";describe("Footer",()=>it("renders the Parts Hub footer",()=>{render(<Footer/>);expect(screen.getByText(/parts hub/i)).toBeInTheDocument();}));
