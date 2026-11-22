@@ -8,7 +8,10 @@ import { useFavorites } from "../../contexts/FavoritesContext";
 import {useAuth} from "../../contexts/AuthContext";
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addItem } = useCart();\n  const {user,loading}=useAuth();\n  const navigate=useNavigate();\n  const addToCart=()=>{if(loading)return;if(!user){navigate("/login",{state:{from:"/cart"}});return;}addItem(product)};
+  const { addItem } = useCart();
+  const {user,loading}=useAuth();
+  const navigate=useNavigate();
+  const addToCart=()=>{if(loading)return;if(!user){navigate("/login",{state:{from:"/cart"}});return;}addItem(product)};
   const { isFavorite, toggleFavorite } = useFavorites();
   const Icon = product.category === "Motorcycle parts" ? Bike : product.category === "Workshop" ? Wrench : CarFront;
   return <article className="product-card">
