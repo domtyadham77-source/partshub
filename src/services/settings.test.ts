@@ -1,1 +1,4 @@
-
+import {describe,expect,it} from "vitest";
+import {CURRENCY,MAX_PRODUCT_IMAGE_BYTES,MAX_PRODUCT_IMAGES} from "../utils/constants";
+import {settingsService} from "./settings";
+describe("settingsService",()=>{it("exposes shared currency and image constraints",()=>{expect(settingsService.currency).toBe(CURRENCY);expect(settingsService.maxProductImageBytes).toBe(MAX_PRODUCT_IMAGE_BYTES);expect(settingsService.maxProductImages).toBe(MAX_PRODUCT_IMAGES);});it("keeps unsupported checkout and recovery options disabled",()=>{expect(settingsService.checkout).toEqual({cashOnDelivery:true,card:false,wallet:false});expect(settingsService.passwordRecovery.enabled).toBe(false);});});
