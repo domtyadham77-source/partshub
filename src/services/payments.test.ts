@@ -1,1 +1,3 @@
-
+import {describe,expect,it} from "vitest";
+import {paymentsService} from "./payments";
+describe("paymentsService",()=>{it("exposes cash on delivery as the only enabled method",()=>{const methods=paymentsService.availableMethods();expect(methods).toEqual([{id:"cash_on_delivery",label:"Cash on delivery",enabled:true},{id:"card",label:"Card",enabled:false},{id:"wallet",label:"Mobile wallet",enabled:false}]);});it("reports enabled status consistently",()=>{expect(paymentsService.isEnabled("cash_on_delivery")).toBe(true);expect(paymentsService.isEnabled("card")).toBe(false);expect(paymentsService.isEnabled("wallet")).toBe(false);});});
