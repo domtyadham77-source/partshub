@@ -1,1 +1,8 @@
-
+import { beforeEach,describe,expect,it,vi } from "vitest";
+vi.mock("./api",()=>({apiRequest:vi.fn()}));
+import {apiRequest} from "./api";
+import {adminService} from "./admin";
+describe("adminService",()=>{beforeEach(()=>vi.clearAllMocks());
+it("loads overview and reports",async()=>{vi.mocked(apiRequest).mockResolvedValueOnce({users:4,pendingMerchants:2,products:8}).mockResolvedValueOnce({orderCount:3});await expect(adminService.overview()).resolves.toMatchObject({users:4});await expect(adminService.reports()).resolves.toMatchObject({orderCount:3});expect(apiRequest).toHaveBeenNthCalledWith(1,"/admin/overview");expect(apiRequest).toHaveBeenNthCalledWith(2,"/admin/reports");});
+it("encodes filters and identifiers for admin actions",async()=>{vi.mocked(apiRequest).mockResolvedValue({success:true});await adminService.merchants("needs review");await adminService.setMerchantStatus("merchant/1","active");await adminService.products("draft");await adminService.setProductStatus("product 1","archived");await adminService.users("a+b@example.com");await adminService.setUserStatus("user/1","suspended");await adminService.orders("in progress");expect(apiRequest).toHaveBeenNthCalledWith(1,"/admin/merchants?status=needs%20review");expect(apiRequest).toHaveBeenNthCalledWith(2,"/admin/merchants/merchant%2F1/status",{method:"POST",body:{status:"active"}});expect(apiRequest).toHaveBeenNthCalledWith(3,"/admin/products?status=draft");expect(apiRequest).toHaveBeenNthCalledWith(4,"/admin/products/product%201/status",{method:"POST",body:{status:"archived"}});expect(apiRequest).toHaveBeenNthCalledWith(5,"/admin/users?q=a%2Bb%40example.com");expect(apiRequest).toHaveBeenNthCalledWith(6,"/admin/users/user%2F1",{method:"POST",body:{status:"suspended"}});expect(apiRequest).toHaveBeenNthCalledWith(7,"/admin/orders?status=in%20progress");});
+});
