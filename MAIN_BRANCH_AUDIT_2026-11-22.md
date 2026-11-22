@@ -61,7 +61,7 @@ The frontend structure exists by filename, but its files are blank:
 No frontend route, page, component, API client, state provider, or test implementation can be relied on from `main` at this baseline.
 
 ### Backend / Cloudflare Worker
-The backend structure is present by filename but all 63 files under `worker/` are one-byte placeholders, including:
+The backend structure is present by filename but all 65 files under `worker/` are one-byte placeholders, including:
 - `worker/package.json`, `worker/tsconfig.json`, `worker/vitest.config.ts`, `worker/wrangler.toml`
 - Both SQL migrations and `worker/src/db/schema.sql`
 - Database connection, query, and repository files
