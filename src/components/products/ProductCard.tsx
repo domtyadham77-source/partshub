@@ -14,7 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const addToCart=()=>{if(loading)return;if(!user){navigate("/login",{state:{from:"/cart"}});return;}addItem(product)};
   const { isFavorite, toggleFavorite } = useFavorites();
   const Icon = product.category === "Motorcycle parts" ? Bike : product.category === "Workshop" ? Wrench : CarFront;
-  return <article className="product-card">
+  return <article className="product-card" data-scroll-reveal>
     <button className={`favorite-toggle ${isFavorite(product.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(product.id)} aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}><Heart size={17} fill={isFavorite(product.id) ? "currentColor" : "none"}/></button>
     <Link to={`/products/${product.id}`} className="catalog-card-link" aria-label={`View ${product.name}`}>
       <div className="product-visual">{product.imageUrl?<img className="product-card-image" src={product.imageUrl} alt={product.name}/>:<Icon size={62} strokeWidth={1}/ >}{product.tag && <span className="product-tag">{product.tag}</span>}<span className="visual-code">{product.id.toUpperCase()}</span></div>
