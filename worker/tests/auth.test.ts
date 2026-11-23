@@ -44,3 +44,19 @@ describe("single administrator authentication policy", () => {
     expect(calls).toHaveLength(0);
   });
 });
+
+import { authenticateRequest } from "../src/middleware/auth";
+describe("single-admin session enforcement", () => {
+  it("rejects legacy sessions when the administrator email secret is absent", async () => {
+    const { db, calls } = createMockD1Database();
+    await expect(authenticateRequest(new Request("https://api.partshub.test/api/admin/overview", { headers: { Cookie: "ph_session=legacy" } }), { DB: db })).resolves.toBeNull();
+    expect(calls).toHaveLength(0);
+  });
+  it("scopes authenticated sessions to the configured active administrator", async () => {
+    const { db, calls } = createMockD1Database([{ first: null }]);
+    await expect(authenticateRequest(new Request("https://api.partshub.test/api/admin/overview", { headers: { Cookie: "ph_session=admin-session" } }), { DB: db, ADMIN_EMAIL: "DOMTYADHAM7@gmail.com" })).resolves.toBeNull();
+    expect(calls[0].sql).toContain("u.role='admin'");
+    expect(calls[0].sql).toContain("lower(u.email)=?");
+    expect(calls[0].values[2]).toBe("domtyadham7@gmail.com");
+  });
+});
