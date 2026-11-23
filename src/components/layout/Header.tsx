@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {Link,NavLink,useNavigate} from "react-router-dom";
-import {Menu,X,Heart,Bell,UserRound,ShoppingCart,Settings,LogIn,UserPlus,Package,Store,Wrench} from "lucide-react";
+import {Menu,X,Heart,Bell,UserRound,ShoppingCart,Settings,LogIn,Package,Store,Wrench} from "lucide-react";
 import {useNotifications} from "../../contexts/NotificationContext";
 import {useAuth} from "../../contexts/AuthContext";
 import {useCart} from "../../contexts/CartContext";
@@ -33,7 +33,7 @@ export default function Header(){
     {user&&<><Link to="/account" onClick={close}><UserRound size={17}/>{t("Account")}</Link><Link to="/orders" onClick={close}><ShoppingCart size={17}/>{t("My orders")}</Link><Link to="/settings" onClick={close}><Settings size={17}/>{t("Settings")}</Link></>}
    </div>
    <div className="hamburger-account">
-    {!loading&&!user&&<><p>{t("Sign in to add items to your cart and place an order.")}</p><button className="menu-primary-action" onClick={()=>{close();navigate("/login")}}><LogIn size={16}/>{t("Sign in")}</button><button className="menu-secondary-action" onClick={()=>{close();navigate("/register")}}><UserPlus size={16}/>{t("Create account")}</button></>}
+    {!loading&&!user&&<><p>{t("Sign in to add items to your cart and place an order.")}</p><button className="menu-primary-action" onClick={()=>{close();navigate("/login")}}><LogIn size={16}/>{t("Sign in")}</button></>}
     {!loading&&user&&<><Link to="/account" onClick={close}><UserRound size={16}/>{user.fullName}</Link><button className="menu-secondary-action" onClick={()=>{close();navigate("/settings")}}><Settings size={16}/>{t("Settings")}</button></>}
    </div>
   </aside></>}

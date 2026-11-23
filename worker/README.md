@@ -1,6 +1,6 @@
-# Parts Hub Preview API
+# Parts Hub API source (Cloudflare Pages Functions)
 
-This Worker is also exposed through the Cloudflare Pages Function at `/api/*` in this repository.
+Parts Hub is deployed as a **Cloudflare Pages** project. The Pages Function at `functions/api/[[path]].ts` forwards `/api/*` requests to the shared API implementation in this directory. The directory name `worker` is historical; the normal Pages deployment does not create or deploy a separate Worker.
 
 ## Preview setup (manual Cloudflare steps)
 
@@ -10,14 +10,14 @@ This Worker is also exposed through the Cloudflare Pages Function at `/api/*` in
 4. Deploy the Preview branch and test `/api/health`.
 5. Configure the Production Pages environment separately later; do not copy the Preview D1 binding into Production.
 
-The Wrangler file contains a deliberately obvious placeholder database ID. Replace it only if deploying this Worker independently. Never commit credentials or real secrets.
+The `wrangler.toml` file is only for optional standalone local/Worker experimentation. It is not the deployment configuration for the Pages project and must not be used to deploy a separate Worker for the normal Parts Hub setup. Pages bindings and variables are configured on the Pages project. Never commit credentials or real secrets.
 
 ## Authentication
 
 - Passwords use PBKDF2-SHA-256 with a per-user random salt.
 - Sessions use random opaque tokens; only SHA-256 token hashes are stored in D1.
 - Session cookies are HttpOnly, Secure, SameSite=Lax, and expire after the configured TTL.
-- Merchant signups start with `pending` status.
+- Public registration is disabled for the single-administrator installation. The only allowed account is the active administrator configured through the Cloudflare Pages environment.
 - Password reset intentionally returns `RECOVERY_NOT_CONFIGURED` until a verified email delivery provider and one-time-token flow are connected.
 
 ## Product photos
