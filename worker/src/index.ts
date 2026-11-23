@@ -26,6 +26,8 @@ import { handleAuthRoute } from "./routes/auth";
 import { handleOrdersRoute } from "./routes/orders";
 import { handleNotificationsRoute } from "./routes/notifications";
 import { handleSupportRoute } from "./routes/support";
+import { handleAdminRoute } from "./routes/admin";
+import { handleMerchantRoute } from "./routes/merchants";
 
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string;business_type:string;city:string;area:string;address_line:string};
 function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
@@ -70,171 +72,9 @@ async function handle(request:Request,env:Env):Promise<Response>{
    const ordersResponse=await handleOrdersRoute(request,env);if(ordersResponse)return ordersResponse;
   const notificationsResponse=await handleNotificationsRoute(request,env);if(notificationsResponse)return notificationsResponse;
   const supportResponse=await handleSupportRoute(request,env);if(supportResponse)return supportResponse;
-  if(url.pathname.startsWith("/api/admin/")){
-  const merchantParts=url.pathname.split("/").filter(Boolean);
-  const admin=await readUser(request,env);if(!admin)return fail(401,"UNAUTHENTICATED","Sign in to continue.");if(admin.role!=="admin"||admin.status!=="active")return fail(403,"ADMIN_ONLY","Administrator access is required.");
-  if(url.pathname==="/api/admin/overview"&&request.method==="GET"){
-   const [users,merchants,products]=await Promise.all([
-    env.DB.prepare("SELECT COUNT(*) AS total FROM users").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM merchant_profiles WHERE status='pending'").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM products").first<any>()
-   ]);
-   return json({data:{users:users?.total||0,pendingMerchants:merchants?.total||0,products:products?.total||0}});
-  }
-
-  if(url.pathname==="/api/admin/users"&&request.method==="GET"){
-   const q=(url.searchParams.get("q")||"").trim().slice(0,80),role=url.searchParams.get("role")||"";
-   let sql="SELECT id,full_name,email,phone,role,status,created_at FROM users WHERE 1=1";const values:string[]=[];
-   if(role&&["customer","merchant","admin"].includes(role)){sql+=" AND role=?";values.push(role);}
-   if(q){sql+=" AND (full_name LIKE ? OR email LIKE ?)";values.push("%"+q+"%","%"+q+"%");}
-   sql+=" ORDER BY created_at DESC LIMIT 100";const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:result.results||[]}});
-  }
-  if(url.pathname==="/api/admin/orders"&&request.method==="GET"){
-   const status=url.searchParams.get("status")||"";let sql="SELECT o.*,u.full_name AS customer_name,m.store_name FROM orders o JOIN users u ON u.id=o.customer_id JOIN merchant_profiles m ON m.id=o.merchant_id";const values:string[]=[];
-   if(status&&["pending","accepted","rejected","processing","shipped","delivered","cancelled"].includes(status)){sql+=" WHERE o.status=?";values.push(status);}
-   sql+=" ORDER BY o.created_at DESC LIMIT 100";const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:result.results||[]}});
-  }
-  if(merchantParts.length===4&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="users"&&request.method==="POST"){
-   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const status=String(body.status||"");if(!["active","suspended"].includes(status))return fail(422,"INVALID_STATUS","Choose active or suspended.");
-   const target=await env.DB.prepare("SELECT id,role FROM users WHERE id=?").bind(id).first<any>();if(!target)return fail(404,"USER_NOT_FOUND","User was not found.");
-   if(target.role==="admin"||id===admin.id)return fail(403,"ADMIN_PROTECTED","Administrator accounts cannot be changed here.");
-   if(status==="active"&&target.role==="merchant")return fail(409,"MERCHANT_REVIEW_REQUIRED","Merchant reactivation must be reviewed through merchant applications.");
-   await env.DB.prepare("UPDATE users SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
-   if(status==="suspended"&&target.role==="merchant")await env.DB.prepare("UPDATE merchant_profiles SET status='suspended',updated_at=? WHERE user_id=?").bind(new Date().toISOString(),id).run();
-   return json({data:{success:true,status}});
-  }
-
-
-  if(url.pathname==="/api/admin/reports"&&request.method==="GET"){
-   const [orders,paid,pending,delivered,merchants,tickets]=await Promise.all([
-    env.DB.prepare("SELECT COUNT(*) AS total,COALESCE(SUM(total_piasters),0) AS gross FROM orders").first<any>(),
-    env.DB.prepare("SELECT COALESCE(SUM(total_piasters),0) AS total FROM orders WHERE payment_status='paid'").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM orders WHERE status='pending'").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM orders WHERE status='delivered'").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM merchant_profiles WHERE status='active'").first<any>(),
-    env.DB.prepare("SELECT COUNT(*) AS total FROM support_tickets WHERE status IN ('open','in_progress')").first<any>()
-   ]);
-   return json({data:{orderCount:orders?.total||0,grossOrderValuePiasters:orders?.gross||0,paidOrderValuePiasters:paid?.total||0,pendingOrders:pending?.total||0,deliveredOrders:delivered?.total||0,activeMerchants:merchants?.total||0,openSupportTickets:tickets?.total||0}});
-  }
-  if(url.pathname==="/api/admin/notifications"&&request.method==="POST"){
-   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const userId=String(body.userId||""),title=String(body.title||"").trim(),message=String(body.message||"").trim(),type=String(body.type||"info");
-   if(!userId||title.length<2||title.length>100||message.length<3||message.length>1000||!["info","success","warning"].includes(type))return fail(422,"INVALID_NOTIFICATION","Check the recipient, title, message, and type.");
-   const target=await env.DB.prepare("SELECT id FROM users WHERE id=? AND status='active'").bind(userId).first();if(!target)return fail(404,"USER_NOT_FOUND","Active user was not found.");
-   const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO notifications(id,user_id,created_by,title,message,type) VALUES(?,?,?,?,?,?)").bind(id,userId,admin.id,title,message,type).run();return json({data:{id,success:true}},201);
-  }
-  if(url.pathname==="/api/admin/notifications"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT n.id,n.title,n.message,n.type,n.created_at,u.full_name,u.email FROM notifications n JOIN users u ON u.id=n.user_id ORDER BY n.created_at DESC LIMIT 100").all<any>();return json({data:{items:rows.results||[]}});
-  }
-  if(url.pathname==="/api/admin/support"&&request.method==="GET"){
-   const status=url.searchParams.get("status")||"open";if(!["open","in_progress","resolved","closed"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid ticket status.");
-   const result=await env.DB.prepare("SELECT t.*,u.full_name,u.email FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE t.status=? ORDER BY t.created_at ASC LIMIT 100").bind(status).all<any>();return json({data:{items:result.results||[]}});
-  }
-  if(merchantParts.length===4&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="support"&&request.method==="POST"){
-   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const status=String(body.status||""),note=String(body.adminNote||"").trim();if(!["in_progress","resolved","closed"].includes(status)||note.length>1000)return fail(422,"INVALID_TICKET_UPDATE","Choose a valid status and a note up to 1,000 characters.");
-   const ticket=await env.DB.prepare("SELECT user_id,ticket_number FROM support_tickets WHERE id=?").bind(id).first<any>();if(!ticket)return fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");const result=await env.DB.prepare("UPDATE support_tickets SET status=?,admin_note=?,updated_at=? WHERE id=?").bind(status,note,new Date().toISOString(),id).run();if(!result.meta.changes)return fail(404,"TICKET_NOT_FOUND","Support ticket was not found.");await createNotification(env,ticket.user_id,"Support request updated",`Your support request ${ticket.ticket_number} is now ${status.replace("_"," ")}.`,status==="resolved"?"success":"info",admin.id);return json({data:{success:true,status}});
-  }
-  if(url.pathname==="/api/admin/products"&&request.method==="GET"){
-   const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
-   const result=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
-   return json({data:{items:(result.results||[]).map(publicProduct)}});
-  }
-  if(url.pathname==="/api/admin/merchants"&&request.method==="GET"){
-   const status=url.searchParams.get("status")||"pending";if(!["pending","active","rejected","suspended"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid merchant status.");
-   const result=await env.DB.prepare("SELECT m.id,m.store_name,m.description,m.contact_phone,m.business_type,m.city,m.area,m.status,m.created_at,u.full_name,u.email FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status=? ORDER BY m.created_at ASC LIMIT 100").bind(status).all<any>();
-   return json({data:{items:result.results||[]}});
-  }
-  if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="merchants"&&merchantParts[4]==="status"&&request.method==="POST"){
-   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const status=String(body.status||"");if(!["active","rejected","suspended"].includes(status))return fail(422,"INVALID_STATUS","Choose active, rejected, or suspended.");
-   const result=await env.DB.prepare("UPDATE merchant_profiles SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();
-   if(!result.meta.changes)return fail(404,"MERCHANT_NOT_FOUND","Merchant profile was not found.");
-   if(status==="active"||status==="rejected")await env.DB.prepare("UPDATE users SET status='active',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();if(status==="suspended")await env.DB.prepare("UPDATE users SET status='suspended',updated_at=? WHERE id=(SELECT user_id FROM merchant_profiles WHERE id=?)").bind(new Date().toISOString(),id).run();
-   const owner=await env.DB.prepare("SELECT user_id FROM merchant_profiles WHERE id=?").bind(id).first<any>();if(owner)await createNotification(env,owner.user_id,"Seller application reviewed",status==="active"?"Your seller account has been approved. You can now manage your store.":status==="rejected"?"Your seller application was not approved. Contact support if you need help.":"Seller access has been suspended.",status==="active"?"success":"warning",admin.id);
-   return json({data:{success:true,status}});
-  }
-  if(merchantParts.length===5&&merchantParts[0]==="api"&&merchantParts[1]==="admin"&&merchantParts[2]==="products"&&merchantParts[4]==="status"&&request.method==="POST"){
-   const id=merchantParts[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const status=String(body.status||"");if(!["active","archived"].includes(status))return fail(422,"INVALID_STATUS","Choose active or archived.");
-   const product=await env.DB.prepare("SELECT p.id,m.user_id AS merchant_user_id,m.status AS merchant_status,u.status AS user_status FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=?").bind(id).first<any>();
-   if(!product)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
-   if(status==="active"&&(product.merchant_status!=="active"||product.user_status!=="active"))return fail(409,"MERCHANT_NOT_APPROVED","Approve the merchant before activating product listings.");
-   await env.DB.prepare("UPDATE products SET status=?,updated_at=? WHERE id=?").bind(status,new Date().toISOString(),id).run();await createNotification(env,product.merchant_user_id,"Product listing reviewed",status==="active"?"Your product listing is now visible in the marketplace.":"Your product listing was archived by marketplace moderation.",status==="active"?"success":"warning",admin.id);return json({data:{success:true,status}});
-  }
-  return fail(404,"NOT_FOUND","Admin endpoint not found.");
- }
- if(url.pathname.startsWith("/api/merchant/")){
-  const isProfile=url.pathname==="/api/merchant/profile";
-  const context=await merchantFor(request,env,isProfile&&(request.method==="GET"||request.method==="PATCH"));
-  if(context.error)return context.error;
-  const merchant=context.merchant;
-  if(isProfile&&request.method==="GET")return json({data:{merchant:{id:merchant.id,storeName:merchant.store_name,description:merchant.description,contactPhone:merchant.contact_phone,status:merchant.status,businessType:merchant.business_type,city:merchant.city,area:merchant.area,addressLine:merchant.address_line}}});
-  if(isProfile&&request.method==="PATCH"){
-   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const storeName=String(body.storeName??merchant.store_name).trim(),description=String(body.description??merchant.description).trim(),phone=String(body.contactPhone??merchant.contact_phone??"").trim()||null,businessType=String(body.businessType??merchant.business_type),city=String(body.city??merchant.city).trim(),area=String(body.area??merchant.area).trim(),addressLine=String(body.addressLine??merchant.address_line).trim();
-   if(storeName.length<2||storeName.length>100||description.length>1000||(phone&&phone.length>30)||!["parts_store","garage","maintenance_center","motorcycle_workshop"].includes(businessType)||city.length>80||area.length>100||addressLine.length>250)return fail(422,"INVALID_PROFILE","Check your store name, business type, description, and address.");
-   await env.DB.prepare("UPDATE merchant_profiles SET store_name=?,description=?,contact_phone=?,business_type=?,city=?,area=?,address_line=?,updated_at=? WHERE id=?").bind(storeName,description,phone,businessType,city,area,addressLine,new Date().toISOString(),merchant.id).run();
-   return json({data:{success:true}});
-  }
-
-  if(url.pathname==="/api/merchant/orders"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT o.*,u.full_name AS customer_name FROM orders o JOIN users u ON u.id=o.customer_id WHERE o.merchant_id=? ORDER BY o.created_at DESC LIMIT 100").bind(merchant.id).all<any>();return json({data:{items:rows.results||[]}});
-  }
-  const orderSegments=url.pathname.split("/").filter(Boolean);
-  if(orderSegments.length===4&&orderSegments[0]==="api"&&orderSegments[1]==="merchant"&&orderSegments[2]==="orders"&&request.method==="POST"){
-   const orderId=orderSegments[3];let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const next=String(body.status||"");if(!["accepted","rejected","processing","shipped","delivered"].includes(next))return fail(422,"INVALID_ORDER_STATUS","Choose a valid order status.");
-   const order=await env.DB.prepare("SELECT * FROM orders WHERE id=? AND merchant_id=?").bind(orderId,merchant.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
-   const allowed:Record<string,string[]>={pending:["accepted","rejected"],accepted:["processing"],processing:["shipped"],shipped:["delivered"]};if(!allowed[order.status]?.includes(next))return fail(409,"INVALID_ORDER_TRANSITION","This order cannot move to that status.");
-   const reservedItems:Array<{id:string;quantity:number}>=[];
-   if(next==="accepted"){
-    const items=await env.DB.prepare("SELECT product_id,quantity FROM order_items WHERE order_id=?").bind(orderId).all<any>();
-    for(const item of items.results||[]){const result=await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity-?,updated_at=? WHERE id=? AND stock_quantity>=? AND status='active'").bind(item.quantity,new Date().toISOString(),item.product_id,item.quantity).run();if(!result.meta.changes){for(const previous of reservedItems)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(previous.quantity,previous.id).run();return fail(409,"INSUFFICIENT_STOCK","Stock changed before this order could be accepted.");}reservedItems.push({id:item.product_id,quantity:item.quantity});}
-   }
-   const result=await env.DB.prepare("UPDATE orders SET status=?,updated_at=? WHERE id=? AND merchant_id=? AND status=?").bind(next,new Date().toISOString(),orderId,merchant.id,order.status).run();
-   if(!result.meta.changes){for(const reserved of reservedItems)await env.DB.prepare("UPDATE products SET stock_quantity=stock_quantity+? WHERE id=?").bind(reserved.quantity,reserved.id).run();return fail(409,"ORDER_UPDATED","This order was updated by another request. Refresh and try again.");}
-   await createNotification(env,order.customer_id,"Order status updated",`Your order ${order.order_number} is now ${next.replace("_"," ")}.`,next==="rejected"?"warning":"success",merchant.user_id);return json({data:{success:true,status:next}});
-  }
-
-  const imageSegments=url.pathname.split("/").filter(Boolean);
-  if(imageSegments.length===5&&imageSegments[0]==="api"&&imageSegments[1]==="merchant"&&imageSegments[2]==="products"&&imageSegments[4]==="image"&&request.method==="POST"){
-   const productId=imageSegments[3],owned=await env.DB.prepare("SELECT id FROM products WHERE id=? AND merchant_id=?").bind(productId,merchant.id).first();if(!owned)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
-   let form:FormData;try{form=await request.formData()}catch{return fail(400,"INVALID_FORM","Upload a valid image file.");}
-   const file=form.get("image");if(!(file instanceof File))return fail(422,"IMAGE_REQUIRED","Choose an image to upload.");
-   if(!["image/jpeg","image/png","image/webp"].includes(file.type))return fail(422,"INVALID_IMAGE_TYPE","Only JPG, PNG, and WebP images are supported.");
-   if(file.size<1||file.size>1000000)return fail(413,"IMAGE_TOO_LARGE","Edited images must be 1 MB or smaller.");
-   const id=crypto.randomUUID(),bytes=new Uint8Array(await file.arrayBuffer());
-   await env.DB.prepare("INSERT INTO product_images(id,product_id,content_type,byte_size,image_data) VALUES(?,?,?,?,?) ON CONFLICT(product_id) DO UPDATE SET id=excluded.id,content_type=excluded.content_type,byte_size=excluded.byte_size,image_data=excluded.image_data,created_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')").bind(id,productId,file.type,file.size,bytes).run();
-   return json({data:{imageUrl:"/api/images/"+id}},201);
-  }
-  if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
-   return json({data:{items:(rows.results||[]).map(publicProduct)}});
-  }
-  if(url.pathname==="/api/merchant/products"&&request.method==="POST"){
-   let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-   const name=String(body.name||"").trim(),category=String(body.category||""),fitment=String(body.fitment||"").trim(),description=String(body.description||"").trim(),sku=String(body.sku||"").trim()||null,price=Number(body.pricePiasters),stock=Number(body.stockQuantity??0);
-   if(name.length<3||name.length>140||!["car_parts","motorcycle_parts","workshop"].includes(category)||fitment.length>160||description.length>3000||!Number.isSafeInteger(price)||price<1||!Number.isSafeInteger(stock)||stock<0||stock>1000000)return fail(422,"INVALID_PRODUCT","Check the product name, category, price, and stock quantity.");
-   const id=crypto.randomUUID();await env.DB.prepare("INSERT INTO products(id,merchant_id,name,category,fitment,sku,description,price_piasters,stock_quantity,status) VALUES(?,?,?,?,?,?,?,?,?,'draft')").bind(id,merchant.id,name,category,fitment,sku,description,price,stock).run();
-   return json({data:{id,status:"draft"}},201);
-  }
-  const segments=url.pathname.split("/").filter(Boolean);
-  if(segments.length===4&&segments[0]==="api"&&segments[1]==="merchant"&&segments[2]==="products"){
-   const id=segments[3],item=await env.DB.prepare("SELECT * FROM products WHERE id=? AND merchant_id=?").bind(id,merchant.id).first<any>();
-   if(!item)return fail(404,"PRODUCT_NOT_FOUND","Product listing was not found.");
-   if(request.method==="DELETE"){await env.DB.prepare("UPDATE products SET status='archived',updated_at=? WHERE id=?").bind(new Date().toISOString(),id).run();return json({data:{success:true}});}
-   if(request.method==="PATCH"){
-    let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-    const name=String(body.name??item.name).trim(),fitment=String(body.fitment??item.fitment).trim(),description=String(body.description??item.description).trim(),sku=body.sku===undefined?item.sku:(String(body.sku).trim()||null),price=Number(body.pricePiasters??item.price_piasters),stock=Number(body.stockQuantity??item.stock_quantity);
-    if(name.length<3||name.length>140||fitment.length>160||description.length>3000||!Number.isSafeInteger(price)||price<1||!Number.isSafeInteger(stock)||stock<0||stock>1000000)return fail(422,"INVALID_PRODUCT","Check the product name, price, and stock quantity.");
-    await env.DB.prepare("UPDATE products SET name=?,fitment=?,description=?,sku=?,price_piasters=?,stock_quantity=?,updated_at=? WHERE id=?").bind(name,fitment,description,sku,price,stock,new Date().toISOString(),id).run();return json({data:{success:true}});
-   }
-  }
-  return fail(404,"NOT_FOUND","Merchant endpoint not found.");
- }
- const authResponse = await handleAuthRoute(request, env);
+  const adminResponse=await handleAdminRoute(request,env);if(adminResponse)return adminResponse;
+  const merchantResponse=await handleMerchantRoute(request,env);if(merchantResponse)return merchantResponse;
+  const authResponse = await handleAuthRoute(request, env);
  if (authResponse) return authResponse;
  if (request.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED", "Method not allowed.");
  try { await request.json(); } catch { return fail(400, "INVALID_JSON", "Request body must be valid JSON."); }
