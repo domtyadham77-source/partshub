@@ -16,7 +16,15 @@ UPDATE notifications
 SET created_by = NULL
 WHERE created_by IN (SELECT id FROM users WHERE role = 'admin');
 
-DELETE FROM users WHERE role = 'admin';
+-- Preserve any legacy account still referenced by customer/business records.
+-- The new authentication code never accepts these rows as administrator identities.
+DELETE FROM users
+WHERE role = 'admin'
+  AND id NOT IN (SELECT customer_id FROM orders)
+  AND id NOT IN (SELECT user_id FROM support_tickets)
+  AND id NOT IN (SELECT user_id FROM merchant_profiles)
+  AND id NOT IN (SELECT user_id FROM favorites)
+  AND id NOT IN (SELECT user_id FROM reviews);
 
 CREATE TABLE IF NOT EXISTS admin_sessions (
   id TEXT PRIMARY KEY,
