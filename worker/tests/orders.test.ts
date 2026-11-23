@@ -26,3 +26,10 @@ describe("order repository", () => {
     expect(calls[0].values).toEqual(["shipped", expect.any(String), "o1", "processing"]);
   });
 });
+
+import { matchesOrdersRoute } from "../src/routes/orders";
+
+describe("customer order route matching",()=>{
+  it.each([["/api/orders","GET"],["/api/orders","POST"],["/api/orders/order-1","GET"],["/api/orders/order-1/cancel","POST"]])("claims %s %s",(path,method)=>expect(matchesOrdersRoute(path,method)).toBe(true));
+  it.each([["/api/orders","DELETE"],["/api/merchant/orders","GET"],["/api/products","GET"]])("does not claim %s %s",(path,method)=>expect(matchesOrdersRoute(path,method)).toBe(false));
+});
