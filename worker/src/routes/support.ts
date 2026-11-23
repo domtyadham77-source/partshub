@@ -7,7 +7,7 @@ async function digest(value:string){const bytes=await crypto.subtle.digest("SHA-
 async function readUser(request:Request,env:Env):Promise<User|null>{const token=cookieValue(request);if(!token)return null;const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(await digest(token),new Date().toISOString()).first<any>();return row?{id:row.id,fullName:row.full_name,email:row.email,phone:row.phone,role:row.role,status:row.status,createdAt:row.created_at}:null;}
 function randomToken(bytes=32){const data=new Uint8Array(bytes);crypto.getRandomValues(data);return [...data].map(b=>b.toString(16).padStart(2,"0")).join("");}
 async function createNotification(env:Env,userId:string,title:string,message:string){try{await env.DB.prepare("INSERT INTO notifications(id,user_id,title,message,type) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(),userId,title,message,"info").run();}catch{/* Do not block order placement for notification failure. */}}
-export function matchesSupportRoute(path:string,method:string){return path==="/api/support/tickets"&&(method==="GET"||method==="POST);}
+export function matchesSupportRoute(path:string,method:string){return path==="/api/support/tickets"&&(method==="GET"||method==="POST");}
 export async function handleSupportRoute(request:Request,env:Env):Promise<Response|null>{const url=new URL(request.url);if(!matchesSupportRoute(url.pathname,request.method))return null;
 if(url.pathname==="/api/support/tickets"&&request.method==="GET"){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view support requests.");
