@@ -147,17 +147,18 @@ This report does not claim that every feature listed in the project roadmap is i
 
 ## Implementation work started on branch `complete-empty-files-audit-and-implementation`
 
-The following changes have been made on the implementation branch, not on `main`:
+The following changes are on this implementation branch, not on `main`:
 
-- Completed `src/pages/HomePage.tsx` as a compatibility re-export of the existing homepage component, avoiding a duplicate homepage implementation.
-- Added `src/styles/animations.css` with reusable entrance/stagger utilities and reduced-motion support; loaded it from `src/main.tsx` while preserving the existing reveal implementation.
-- Implemented the four blank Worker service modules as typed adapters over the existing D1 repositories: audit, cart, notifications and payments.
-- Added real tests for the homepage compatibility entry, all Worker service adapters, D1 helpers, cart/order/product repositories, authentication, permissions, password reset, request validation and image uploads; added reusable D1 mock bindings, a test environment factory and domain fixtures.
-- Filled 63 of the 79 baseline one-byte placeholders; 16 remain: 15 disconnected Worker route modules and the invalid one-byte logo asset.
-- All frontend test files/helpers and all Worker test files/helpers that were placeholders now contain test/helper code. Page files have import smoke tests; service and integration files have behavioral contract tests. The smoke tests should be expanded with full UI interaction coverage in a later pass.
-- Worker route modules remain intentionally untouched until the active handlers can be extracted from `worker/src/index.ts` and wired without duplicating API logic. The logo remains unresolved because an image binary cannot be replaced with source code.
-- Updated CI triggers so build, frontend tests, Worker typecheck and Worker tests run for both `main` and `preview` pushes and pull requests. The previous workflow only ran for `preview`, which meant main pull requests had no CI verification.
-- The remaining 15 Worker route modules are intentionally not populated with disconnected duplicate handlers. They need extraction from the active `worker/src/index.ts` and wiring through its dispatcher as a separate, reviewable refactor.
-- The remaining empty test files still need feature-specific assertions and stable mocks. The one-byte logo asset also remains unresolved pending confirmation of the intended image asset.
+- Completed `src/pages/HomePage.tsx` as a compatibility re-export of the existing homepage component.
+- Added and loaded `src/styles/animations.css` with reusable entrance/stagger utilities and reduced-motion support.
+- Implemented all four previously empty Worker service modules as typed adapters over the existing D1 repositories.
+- Added tests for Worker services, D1 helpers, cart/order/product repositories, authentication, permissions, password reset, request validation and image uploads. Added reusable D1 mocks, a test environment factory and domain fixtures.
+- Filled the frontend page test files with module smoke tests, and added behavioral contract tests for frontend auth, cart, admin, merchant, notifications, orders, payment, upload, PWA, security and accessibility flows.
+- Updated PWA registration to use a centralized production/support guard.
+- Expanded CI so frontend build/tests and Worker typecheck/tests run for both `main` and `preview` pushes and pull requests.
+- **63 of the 79 baseline one-byte placeholders are now populated. 16 remain:** 15 disconnected Worker route modules and the invalid one-byte `src/assets/logo.png`.
+- The route modules are intentionally not filled with disconnected duplicate handlers. They need a controlled extraction from `worker/src/index.ts`, followed by wiring through the active dispatcher and route-level tests.
+- The page import tests are smoke tests, not a substitute for full UI interaction coverage; they should be expanded in the next quality pass.
+- The one-byte logo is a binary asset issue, not a code file. It should be replaced only with the confirmed approved logo file.
 
-No merge to `main` and no Cloudflare deployment have been performed.
+No merge to `main` and no production deployment have been performed.
