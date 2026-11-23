@@ -152,7 +152,8 @@ The following changes have been made on the implementation branch, not on `main`
 - Completed `src/pages/HomePage.tsx` as a compatibility re-export of the existing homepage component, avoiding a duplicate homepage implementation.
 - Added `src/styles/animations.css` with reusable entrance/stagger utilities and reduced-motion support; loaded it from `src/main.tsx` while preserving the existing reveal implementation.
 - Implemented the four blank Worker service modules as typed adapters over the existing D1 repositories: audit, cart, notifications and payments.
-- Added real tests for the homepage compatibility entry and the four Worker services (plus a dedicated audit-service test).
+- Added real tests for the homepage compatibility entry, Worker service adapters, D1 helpers and cart repository behavior; added reusable D1 mock bindings, a test environment factory and domain fixtures.
+- Filled 15 of the 79 baseline one-byte placeholders in this first pass; 64 baseline placeholders remain for the route extraction, remaining feature tests and asset decision.
 - Updated CI triggers so build, frontend tests, Worker typecheck and Worker tests run for both `main` and `preview` pushes and pull requests. The previous workflow only ran for `preview`, which meant main pull requests had no CI verification.
 - The remaining 15 Worker route modules are intentionally not populated with disconnected duplicate handlers. They need extraction from the active `worker/src/index.ts` and wiring through its dispatcher as a separate, reviewable refactor.
 - The remaining empty test files still need feature-specific assertions and stable mocks. The one-byte logo asset also remains unresolved pending confirmation of the intended image asset.
