@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { hasRole, isOwnerOrAdmin, requireRole, type AuthUser } from "../src/middleware/permissions";
+import { hasRole, isOwnerOrAdmin, requireRole } from "../src/middleware/permissions";
+import type { AuthUser } from "../src/middleware/auth";
 
 const customer: AuthUser = {
   id: "u1", fullName: "Customer", email: "customer@example.test", phone: null, role: "customer", status: "active",
