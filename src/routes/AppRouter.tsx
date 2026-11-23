@@ -8,7 +8,6 @@ import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
 import LoginPage from "../pages/LoginPage";
-import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
 import RequireAuth from "../components/auth/RequireAuth";
@@ -46,7 +45,7 @@ export default function AppRouter() {
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
   <Route path="/login" element={<LoginPage/>}/>
   <Route path="/register" element={<Navigate to="/login" replace/>}/>
-  <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+  <Route path="/forgot-password" element={<Navigate to="/login" replace/>}/>
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
