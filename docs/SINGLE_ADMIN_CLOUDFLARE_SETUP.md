@@ -1,16 +1,31 @@
-# Single administrator setup (Cloudflare Worker)
+# Single administrator setup (Cloudflare Pages)
 
-Public registration is disabled in the frontend and Worker API. Sign-in is restricted to the administrator configured through Worker secrets.
+Parts Hub is hosted on **Cloudflare Pages**. The API code is executed by the Pages Function at `functions/api/[[path]].ts`, which forwards `/api/*` requests to the shared API module in `worker/src`. The `worker` folder is the source-code location; this setup does **not** require creating or deploying a separate Cloudflare Worker.
 
-Set these in the Worker environment (never commit their values):
+Public registration is disabled in both the frontend routes and the API. Sign-in is restricted to one active administrator configured in the Cloudflare Pages environment.
 
-- `ADMIN_EMAIL`: plain-text Worker variable set to `domtyadham7@gmail.com`.
-- `ADMIN_PASSWORD`: **Worker Secret** containing the password you choose in Cloudflare.
+## Configure Preview first
 
-On first successful sign-in, the Worker creates the administrator only if no administrator exists. If another administrator already exists, or the configured email belongs to a non-admin account, setup is refused rather than overwriting an account. Customer/merchant sessions from any previous installation are revoked on successful administrator sign-in.
+In the Cloudflare dashboard:
 
-The configured password is the source of truth. When you change `ADMIN_PASSWORD` in Cloudflare, sign in with the new value; the Worker updates the PBKDF2 hash in D1 and revokes the previous administrator sessions. No password value is stored in this repository.
+1. Open **Workers & Pages** and select the **Parts Hub Pages project**.
+2. Open **Settings → Variables and Secrets**.
+3. Add `ADMIN_EMAIL` as a plain-text variable with value `domtyadham7@gmail.com`.
+4. Add `ADMIN_PASSWORD` as an encrypted **Secret**. Choose a strong password; do not put it in GitHub or source files.
+5. Make sure these values are set for the **Preview** environment first, then redeploy the Preview deployment so the Pages Function receives them.
 
-The requested temporary password `123` is not committed or embedded in code. It is extremely weak; do not use it in production. Configure Preview and Production secrets separately. This code change does not itself alter Cloudflare settings, deploy the Worker, or change D1 data.
+The Pages Function also needs the existing D1 binding named `DB` under the Pages project's **Settings → Bindings**. Point Preview to the Preview D1 database only. Do not reuse the Production database.
 
-After setting both secrets and deploying the Worker, open `/login`. A successful sign-in redirects to `/admin`.
+## How first sign-in works
+
+On the first successful sign-in, the Pages Function creates the administrator only if no administrator exists. If another administrator already exists, or the configured email belongs to a non-admin account, setup is refused rather than silently changing that account. Sessions belonging to old customer/merchant accounts are retired after a successful administrator sign-in.
+
+The configured `ADMIN_PASSWORD` is the source of truth. When you rotate that Secret in Cloudflare Pages, sign in with the new value; the API updates the PBKDF2 password hash in D1 and revokes the previous administrator sessions.
+
+The requested temporary password `123` is not committed or embedded in code. It is extremely weak and must not be used in Production.
+
+## Production
+
+Only after Preview login and the `/admin` dashboard have been tested, configure `ADMIN_EMAIL` and `ADMIN_PASSWORD` separately for the **Production** environment in the same Pages project settings. Keep the Production D1 binding pointed at the Production database. This code change does not alter Cloudflare settings, deploy Pages, or modify D1 data.
+
+After configuring Preview and deploying the Preview branch, open `/login`. A successful administrator sign-in redirects to `/admin`.
