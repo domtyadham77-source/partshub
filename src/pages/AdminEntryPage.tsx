@@ -1,5 +1,5 @@
 import { useState,type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate,useNavigate } from "react-router-dom";
 import { Eye,EyeOff,LockKeyhole,ShieldCheck } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import Button from "../components/ui/Button";
@@ -18,7 +18,7 @@ export default function AdminEntryPage(){
  const [busy,setBusy]=useState(false);
 
  if(loading)return <MainLayout><section className="admin-entry-page"><div className="admin-entry-card"><span className="admin-entry-spinner"/></div></section></MainLayout>;
- if(user?.role==="admin")return <NavigateToDashboard navigate={navigate}/>;
+ if(user?.role==="admin")return <Navigate to="/admin/dashboard" replace/>;
 
  async function submit(event:FormEvent){
   event.preventDefault();setError("");setBusy(true);
@@ -47,7 +47,3 @@ export default function AdminEntryPage(){
  </MainLayout>;
 }
 
-function NavigateToDashboard({navigate}:{navigate:(path:string,options?:{replace?:boolean})=>void}){
- navigate("/admin/dashboard",{replace:true});
- return null;
-}
