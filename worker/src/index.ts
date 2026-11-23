@@ -24,6 +24,8 @@ async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:numbe
 
 import { handleAuthRoute } from "./routes/auth";
 import { handleOrdersRoute } from "./routes/orders";
+import { handleNotificationsRoute } from "./routes/notifications";
+import { handleSupportRoute } from "./routes/support";
 
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string;business_type:string;city:string;area:string;address_line:string};
 function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
@@ -66,6 +68,8 @@ async function handle(request:Request,env:Env):Promise<Response>{
 
 
    const ordersResponse=await handleOrdersRoute(request,env);if(ordersResponse)return ordersResponse;
+  const notificationsResponse=await handleNotificationsRoute(request,env);if(notificationsResponse)return notificationsResponse;
+  const supportResponse=await handleSupportRoute(request,env);if(supportResponse)return supportResponse;
   if(url.pathname.startsWith("/api/admin/")){
   const merchantParts=url.pathname.split("/").filter(Boolean);
   const admin=await readUser(request,env);if(!admin)return fail(401,"UNAUTHENTICATED","Sign in to continue.");if(admin.role!=="admin"||admin.status!=="active")return fail(403,"ADMIN_ONLY","Administrator access is required.");
