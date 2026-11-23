@@ -28,3 +28,7 @@ describe("product image uploads", () => {
     expect(calls[0].values).toEqual(["p1", "p1", "m1"]);
   });
 });
+
+import { matchesUploadsRoute } from "../src/routes/uploads";
+
+describe("public image route matching",()=>{it("claims GET image delivery only",()=>{expect(matchesUploadsRoute("/api/images/image-1","GET")).toBe(true);expect(matchesUploadsRoute("/api/images/image-1","POST")).toBe(false);expect(matchesUploadsRoute("/api/products/image-1","GET")).toBe(false);});});
