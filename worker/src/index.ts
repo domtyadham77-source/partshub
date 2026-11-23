@@ -28,6 +28,8 @@ import { handleNotificationsRoute } from "./routes/notifications";
 import { handleSupportRoute } from "./routes/support";
 import { handleAdminRoute } from "./routes/admin";
 import { handleMerchantRoute } from "./routes/merchants";
+import { handleUploadsRoute } from "./routes/uploads";
+import { handleProductsRoute } from "./routes/products";
 
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string;business_type:string;city:string;area:string;address_line:string};
 function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
@@ -42,29 +44,6 @@ async function handle(request:Request,env:Env):Promise<Response>{
 
 
 
- if(url.pathname.startsWith("/api/images/")&&request.method==="GET"){
-  const imageId=url.pathname.slice("/api/images/".length);const row=await env.DB.prepare("SELECT pi.image_data,pi.content_type,p.status AS product_status,m.status AS merchant_status,m.user_id FROM product_images pi JOIN products p ON p.id=pi.product_id JOIN merchant_profiles m ON m.id=p.merchant_id WHERE pi.id=?").bind(imageId).first<any>();
-  if(!row)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
-  const isPublic=row.product_status==="active"&&row.merchant_status==="active";let allowed=isPublic;if(!allowed){const user=await readUser(request,env);allowed=!!user&&user.role==="merchant"&&user.id===row.user_id;}
-  if(!allowed)return fail(404,"IMAGE_NOT_FOUND","Image was not found.");
-  return new Response(row.image_data,{status:200,headers:{"Content-Type":row.content_type,"Cache-Control":isPublic?"public, max-age=3600":"private, no-store","X-Content-Type-Options":"nosniff"}});
- }
- if(url.pathname==="/api/workshops"&&request.method==="GET"){
-  const city=(url.searchParams.get("city")||"").trim().slice(0,80),type=url.searchParams.get("type")||"";const types=["garage","maintenance_center","motorcycle_workshop"];if(type&&!types.includes(type))return fail(400,"INVALID_WORKSHOP_TYPE","Choose a valid provider type.");
-  let sql="SELECT m.id,m.store_name,m.description,m.contact_phone,m.business_type,m.city,m.area,m.address_line FROM merchant_profiles m JOIN users u ON u.id=m.user_id WHERE m.status='active' AND u.status='active' AND m.business_type IN ('garage','maintenance_center','motorcycle_workshop')";const values:string[]=[];if(city){sql+=" AND m.city LIKE ?";values.push("%"+city+"%");}if(type){sql+=" AND m.business_type=?";values.push(type);}sql+=" ORDER BY m.store_name ASC LIMIT 100";const rows=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:rows.results||[]}});
- }
- if(url.pathname==="/api/products"&&request.method==="GET"){
-  const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
-  if(category&&!["car_parts","motorcycle_parts","workshop"].includes(category))return fail(400,"INVALID_CATEGORY","Choose a valid product category.");
-  let sql="SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status='active' AND m.status='active' AND u.status='active'";
-  const values:(string|number)[]=[];if(category){sql+=" AND p.category=?";values.push(category);}if(q){sql+=" AND (p.name LIKE ? OR p.fitment LIKE ? OR p.sku LIKE ?)";values.push("%"+q+"%","%"+q+"%","%"+q+"%");}
-  sql+=" ORDER BY p.created_at DESC LIMIT ?";values.push(limit);
-  const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:(result.results||[]).map(publicProduct)}});
- }
- if(url.pathname.startsWith("/api/products/")&&request.method==="GET"){
-  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
-  return row?json({data:{product:publicProduct(row)}}):fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
- }
  const origin=request.headers.get("Origin");const allowed=(env.ALLOWED_ORIGIN||"").split(",").map(x=>x.trim()).filter(Boolean);if(origin&&origin!==url.origin&&!allowed.includes(origin))return fail(403,"ORIGIN_NOT_ALLOWED","This origin is not allowed.");
 
 
@@ -74,6 +53,8 @@ async function handle(request:Request,env:Env):Promise<Response>{
   const supportResponse=await handleSupportRoute(request,env);if(supportResponse)return supportResponse;
   const adminResponse=await handleAdminRoute(request,env);if(adminResponse)return adminResponse;
   const merchantResponse=await handleMerchantRoute(request,env);if(merchantResponse)return merchantResponse;
+  const uploadsResponse=await handleUploadsRoute(request,env);if(uploadsResponse)return uploadsResponse;
+  const productsResponse=await handleProductsRoute(request,env);if(productsResponse)return productsResponse;
   const authResponse = await handleAuthRoute(request, env);
  if (authResponse) return authResponse;
  if (request.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED", "Method not allowed.");
