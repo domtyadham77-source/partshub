@@ -2,10 +2,10 @@
 
 Public registration is disabled in the frontend and Worker API. Sign-in is restricted to the administrator configured through Worker secrets.
 
-Set these as **Worker Secrets**, never as committed source or plaintext repository variables:
+Set these in the Worker environment (never commit their values):
 
-- `ADMIN_EMAIL`: `domtyadham7@gmail.com`
-- `ADMIN_PASSWORD`: a strong password you choose in Cloudflare.
+- `ADMIN_EMAIL`: plain-text Worker variable set to `domtyadham7@gmail.com`.
+- `ADMIN_PASSWORD`: **Worker Secret** containing the password you choose in Cloudflare.
 
 On first successful sign-in, the Worker creates the administrator only if no administrator exists. If another administrator already exists, or the configured email belongs to a non-admin account, setup is refused rather than overwriting an account. Customer/merchant sessions from any previous installation are revoked on successful administrator sign-in.
 
