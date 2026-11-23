@@ -1,4 +1,7 @@
-export interface Env { DB:D1Database; ALLOWED_ORIGIN?:string; SESSION_TTL_DAYS?:string; ADMIN_EMAIL?:string; ADMIN_PASSWORD?:string }
+import type { D1DatabaseLike } from "./db/connection";
+
+/** Runtime bindings supplied by the Cloudflare Pages Function environment. */
+export interface Env { DB:D1DatabaseLike; ALLOWED_ORIGIN?:string; SESSION_TTL_DAYS?:string; ADMIN_EMAIL?:string; ADMIN_PASSWORD?:string }
 type PublicUser={id:string;fullName:string;email:string;phone:string|null;role:"customer"|"merchant"|"admin";status:"active"|"pending"|"suspended";createdAt:string};
 const json=(data:unknown,status=200,headers:HeadersInit={})=>new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store",...headers}});
 const fail=(status:number,code:string,message:string)=>json({error:{code,message}},status);
