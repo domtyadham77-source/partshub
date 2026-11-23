@@ -8,6 +8,7 @@ import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
 import LoginPage from "../pages/LoginPage";
+import AdminEntryPage from "../pages/AdminEntryPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
 import RequireAuth from "../components/auth/RequireAuth";
@@ -49,7 +50,8 @@ export default function AppRouter() {
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
-  <Route path="/admin" element={<RequireAuth roles={["admin"]}><AdminDashboardPage/></RequireAuth>}/>
+  <Route path="/admin" element={<AdminEntryPage/>}/>
+  <Route path="/admin/dashboard" element={<RequireAuth roles={["admin"]}><AdminDashboardPage/></RequireAuth>}/>
   <Route path="/admin/merchants" element={<RequireAuth roles={["admin"]}><AdminMerchantsPage/></RequireAuth>}/>
   <Route path="/admin/products" element={<RequireAuth roles={["admin"]}><AdminProductsPage/></RequireAuth>}/>
   <Route path="/admin/users" element={<RequireAuth roles={["admin"]}><AdminUsersPage/></RequireAuth>}/>
