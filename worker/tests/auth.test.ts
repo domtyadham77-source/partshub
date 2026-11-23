@@ -12,7 +12,7 @@ describe("authentication middleware", () => {
     const { db, calls } = createMockD1Database([{ first: null }]);
     await expect(authenticateRequest(new Request("https://api.partshub.test/api/me", {
       headers: { Cookie: "other=value; ph_session=secret-session-token" },
-    }), { DB: db })).resolves.toBeNull();
+    }), { DB: db, ADMIN_EMAIL: "domtyadham7@gmail.com" })).resolves.toBeNull();
     expect(calls[0].sql).toContain("token_hash");
     expect(calls[0].values[0]).not.toBe("secret-session-token");
   });
@@ -38,14 +38,13 @@ describe("single administrator authentication policy", () => {
   });
   it("requires Cloudflare administrator secrets before allowing sign-in", async () => {
     const { db, calls } = createMockD1Database();
-    const response = await handleAuthRoute(new Request("https://api.partshub.test/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "domtyadham7@gmail.com", password: "123" }) }), { DB: db });
+    const response = await handleAuthRoute(new Request("https://api.partshub.test/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "domtyadham7@gmail.com", password: "123" }) }), { DB: db as any });
     expect(response?.status).toBe(503);
     await expect(response?.json()).resolves.toMatchObject({ error: { code: "ADMIN_LOGIN_NOT_CONFIGURED" } });
     expect(calls).toHaveLength(0);
   });
 });
 
-import { authenticateRequest } from "../src/middleware/auth";
 describe("single-admin session enforcement", () => {
   it("rejects legacy sessions when the administrator email secret is absent", async () => {
     const { db, calls } = createMockD1Database();
