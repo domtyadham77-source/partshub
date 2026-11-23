@@ -47,7 +47,7 @@ async function constantTimeSecretMatch(candidate: string, expected: string) {
   return difference === 0;
 }
 function validEmail(value: string) {
-  return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(value) && value.length <= 254;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 254;
 }
 function publicUser(row: any): PublicUser {
   return { id: row.id, fullName: row.full_name, email: row.email, phone: row.phone, role: row.role, status: row.status, createdAt: row.created_at };
