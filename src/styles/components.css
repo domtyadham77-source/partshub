@@ -35,3 +35,21 @@ html[dir=rtl] .hamburger-panel{right:auto;left:0}
 /* Existing Parts Hub wordmark used by the shared header */
 .shared-header .brand-logo{display:block;width:auto;height:42px;max-width:176px;object-fit:contain}
 @media(max-width:650px){.shared-header .brand-logo{height:38px;max-width:150px}}
+
+/* Dedicated password-only administrator entry */
+.admin-entry-page{min-height:calc(100vh - 170px);display:grid;place-items:center;padding:44px 16px 70px}
+.admin-entry-card{width:min(100%,490px);padding:clamp(27px,5vw,46px);border:1px solid var(--border);border-radius:22px;background:linear-gradient(145deg,#202428 0%,#151719 72%);box-shadow:0 24px 80px #0005}
+.admin-entry-icon{width:58px;height:58px;display:grid;place-items:center;border-radius:16px;background:var(--orange-soft);color:var(--orange);margin-bottom:25px}
+.admin-entry-card h1{font-size:clamp(30px,5vw,42px);line-height:1.12;margin:13px 0 12px;letter-spacing:-1px}
+.admin-entry-card>p{font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 28px}
+.admin-entry-card form{display:grid;gap:18px}
+.admin-password-wrap{position:relative}
+.admin-password-wrap .ph-field{padding:0}
+.admin-password-wrap .admin-password-input{padding-inline-end:52px;min-height:52px;font-size:14px}
+.admin-password-toggle{position:absolute;right:10px;bottom:7px;width:38px;height:38px;display:grid;place-items:center;border:0;border-radius:9px;background:transparent;color:var(--muted);cursor:pointer}
+html[dir=rtl] .admin-password-toggle{right:auto;left:10px}
+.admin-password-toggle:hover{color:var(--orange);background:#ffffff09}
+.admin-entry-card form>.ph-button{min-height:50px;font-size:13px}
+.admin-entry-foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;padding-top:18px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)}
+.admin-entry-foot svg{color:var(--orange)}
+.admin-entry-spinner{width:25px;height:25px;border:2px solid #ffffff25;border-top-color:var(--orange);border-radius:50%;animation:ph-spin .7s linear infinite}
