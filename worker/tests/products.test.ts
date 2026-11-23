@@ -27,3 +27,7 @@ describe("product repository", () => {
     expect(calls[0].sql).toContain("stock_quantity+?>=0");
   });
 });
+
+import { matchesProductsRoute } from "../src/routes/products";
+
+describe("public product route matching",()=>{it("claims public product and workshop reads",()=>{expect(matchesProductsRoute("/api/products","GET")).toBe(true);expect(matchesProductsRoute("/api/products/p1","GET")).toBe(true);expect(matchesProductsRoute("/api/workshops","GET")).toBe(true);});it("rejects unsupported methods",()=>{expect(matchesProductsRoute("/api/products","POST")).toBe(false);});});
