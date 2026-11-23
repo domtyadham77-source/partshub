@@ -1,1 +1,26 @@
-
+/* Reusable motion utilities. Existing scroll-reveal behavior remains in global.css. */
+@keyframes ph-motion-fade-up {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes ph-motion-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ph-motion-scale-in {
+  from { opacity: 0; transform: scale(.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.ph-motion-fade-up { animation: ph-motion-fade-up .55s cubic-bezier(.2,.7,.2,1) both; }
+.ph-motion-fade-in { animation: ph-motion-fade-in .4s ease both; }
+.ph-motion-scale-in { animation: ph-motion-scale-in .45s cubic-bezier(.2,.7,.2,1) both; }
+.ph-motion-stagger > * { animation: ph-motion-fade-up .5s cubic-bezier(.2,.7,.2,1) both; }
+.ph-motion-stagger > :nth-child(2) { animation-delay: 70ms; }
+.ph-motion-stagger > :nth-child(3) { animation-delay: 140ms; }
+.ph-motion-stagger > :nth-child(4) { animation-delay: 210ms; }
+.ph-motion-stagger > :nth-child(5) { animation-delay: 280ms; }
+.ph-motion-stagger > :nth-child(6) { animation-delay: 350ms; }
+@media (prefers-reduced-motion: reduce) {
+  .ph-motion-fade-up, .ph-motion-fade-in, .ph-motion-scale-in,
+  .ph-motion-stagger > * { animation: none !important; }
+}

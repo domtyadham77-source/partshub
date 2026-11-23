@@ -12,6 +12,6 @@ describe("Header",()=>{
   expect(screen.getByRole("img",{name:"Parts Hub"})).toHaveAttribute("src","/brand/parts-hub-wordmark.png");
   expect(screen.getByRole("link",{name:/parts hub home/i})).toBeInTheDocument();
   expect(screen.getByRole("link",{name:/car parts/i})).toHaveAttribute("href","/cars");
-  expect(screen.getByText("2")).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"Open menu"})).toBeInTheDocument();
  });
 });
