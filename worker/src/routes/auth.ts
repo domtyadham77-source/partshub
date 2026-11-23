@@ -107,38 +107,6 @@ export async function handleAuthRoute(request: Request, env: Env): Promise<Respo
 
   if (url.pathname === "/api/auth/register") {
     return fail(403, "REGISTRATION_DISABLED", "Parts Hub accounts are currently invitation-only.");
-    if (!env.DB) return fail(503, "DATABASE_NOT_CONFIGURED", "The preview database is not connected yet. Please try again later.");
-    if (!await allowAuthAttempt(request, env, "register", 6)) return fail(429, "RATE_LIMITED", "Too many sign-up attempts. Try again later.");
-    const fullName = String(body.fullName || "").trim();
-    const email = String(body.email || "").trim().toLowerCase();
-    const phone = String(body.phone || "").trim() || null;
-    const password = String(body.password || "");
-    const role = body.role === "merchant" ? "merchant" : "customer";
-    const businessType = String(body.businessType || "parts_store");
-    if (role === "merchant" && !["parts_store", "garage", "maintenance_center", "motorcycle_workshop"].includes(businessType)) return fail(422, "INVALID_BUSINESS_TYPE", "Choose a valid seller business type.");
-    if (fullName.length < 2 || fullName.length > 90) return fail(422, "INVALID_NAME", "Enter your full name.");
-    if (!validEmail(email)) return fail(422, "INVALID_EMAIL", "Enter a valid email address.");
-    if (phone && phone.length > 30) return fail(422, "INVALID_PHONE", "Enter a valid phone number.");
-    if (password.length < 10 || password.length > 128) return fail(422, "WEAK_PASSWORD", "Password must be at least 10 characters.");
-    const existing = await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();
-    if (existing) return fail(409, "EMAIL_EXISTS", "An account with this email already exists.");
-    const id = crypto.randomUUID(), salt = randomToken(16), hash = await passwordHash(password, salt);
-    try {
-      const statements = [env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)")
-        .bind(id, fullName, email, phone, role, role === "merchant" ? "pending" : "active", hash, salt)];
-      if (role === "merchant") statements.push(env.DB.prepare("INSERT INTO merchant_profiles(id,user_id,store_name,status,business_type) VALUES(?,?,?,?,?)")
-        .bind(crypto.randomUUID(), id, fullName, "pending", businessType));
-      await env.DB.batch(statements);
-    } catch (error) {
-      const duplicate = await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();
-      if (duplicate) return fail(409, "EMAIL_EXISTS", "An account with this email already exists.");
-      console.error("registration_database_write_failed", error);
-      return fail(500, "REGISTRATION_FAILED", "We could not create your account right now. Please try again later.");
-    }
-    const session = await createSession(id, env);
-    const row = await env.DB.prepare("SELECT * FROM users WHERE id=?").bind(id).first<any>();
-    const maxAge = Math.floor((new Date(session.expires).getTime() - Date.now()) / 1000);
-    return json({ data: { user: publicUser(row) } }, 201, { "Set-Cookie": sessionCookie(session.token, maxAge) });
   }
 
   if (url.pathname === "/api/auth/login") {
