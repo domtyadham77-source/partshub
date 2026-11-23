@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import App from "../App";
 import CatalogPage from "../pages/CatalogPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
@@ -8,7 +8,6 @@ import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
 import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
@@ -46,7 +45,7 @@ export default function AppRouter() {
   <Route path="/workshops" element={<WorkshopsPage/>}/>
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
   <Route path="/login" element={<LoginPage/>}/>
-  <Route path="/register" element={<RegisterPage/>}/>
+  <Route path="/register" element={<Navigate to="/login" replace/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
