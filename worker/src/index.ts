@@ -295,6 +295,8 @@ async function handle(request:Request,env:Env):Promise<Response>{
  }
  const authResponse = await handleAuthRoute(request, env);
  if (authResponse) return authResponse;
- return fail(404,"NOT_FOUND","Endpoint not found.");
+ if (request.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED", "Method not allowed.");
+ try { await request.json(); } catch { return fail(400, "INVALID_JSON", "Request body must be valid JSON."); }
+ return fail(404, "NOT_FOUND", "Endpoint not found.");
 }
 export default {async fetch(request:Request,env:Env){let response:Response;try{response=await handle(request,env)}catch(error){console.error("parts_hub_request_failed",error);response=fail(500,"INTERNAL_ERROR","The service could not complete this request. Please try again later.");}const cors=corsHeaders(request,env);const headers=new Headers(response.headers);cors.forEach((v,k)=>headers.set(k,v));return secureHeaders(new Response(response.body,{status:response.status,statusText:response.statusText,headers}));}};
