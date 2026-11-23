@@ -41,27 +41,6 @@ if(url.pathname==="/api/orders"&&request.method==="GET"){
  }
 
 
- if(url.pathname==="/api/notifications"&&request.method==="GET"){
-  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view notifications.");
-  const rows=await env.DB.prepare("SELECT id,title,message,type,read_at,created_at FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(user.id).all<any>();return json({data:{items:rows.results||[]}});
- }
- if(url.pathname.startsWith("/api/notifications/")&&request.method==="POST"){
-  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
-  const id=url.pathname.slice("/api/notifications/".length).replace(/\/read$/,"");
-  const result=await env.DB.prepare("UPDATE notifications SET read_at=? WHERE id=? AND user_id=?").bind(new Date().toISOString(),id,user.id).run();return result.meta.changes?json({data:{success:true}}):fail(404,"NOTIFICATION_NOT_FOUND","Notification was not found.");
- }
- if(url.pathname==="/api/support/tickets"&&request.method==="GET"){
-  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view support requests.");
-  const result=await env.DB.prepare("SELECT id,ticket_number,category,subject,message,status,admin_note,created_at,updated_at FROM support_tickets WHERE user_id=? ORDER BY created_at DESC LIMIT 50").bind(user.id).all<any>();return json({data:{items:result.results||[]}});
- }
- if(url.pathname==="/api/support/tickets"&&request.method==="POST"){
-  const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to contact support.");
-  let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
-  const category=String(body.category||"other"),subject=String(body.subject||"").trim(),message=String(body.message||"").trim();
-  if(!["order","account","payment","delivery","product","other"].includes(category)||subject.length<5||subject.length>120||message.length<10||message.length>3000)return fail(422,"INVALID_TICKET","Check the support category, subject, and message.");
-  const id=crypto.randomUUID(),ticketNumber="SUP"+new Date().toISOString().slice(2,10).replace(/-/g,"")+randomToken(3).slice(0,6).toUpperCase();
-  await env.DB.prepare("INSERT INTO support_tickets(id,ticket_number,user_id,category,subject,message) VALUES(?,?,?,?,?,?)").bind(id,ticketNumber,user.id,category,subject,message).run();return json({data:{id,ticketNumber,status:"open"}},201);
- }
  if(url.pathname.startsWith("/api/orders/")){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
   const segments=url.pathname.split("/").filter(Boolean),id=segments[2];
