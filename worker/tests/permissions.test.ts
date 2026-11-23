@@ -33,3 +33,9 @@ describe("support ticket route matching",()=>{
   it.each([["/api/support/tickets","GET"],["/api/support/tickets","POST"]])("claims %s %s",(path,method)=>expect(matchesSupportRoute(path,method)).toBe(true));
   it.each([["/api/support/tickets/1","GET"],["/api/support","GET"],["/api/orders","POST"]])("does not claim %s %s",(path,method)=>expect(matchesSupportRoute(path,method)).toBe(false));
 });
+
+import { matchesAdminRoute } from "../src/routes/admin";
+import { matchesMerchantRoute } from "../src/routes/merchants";
+
+describe("admin route matching",()=>{it("claims admin API methods",()=>{expect(matchesAdminRoute("/api/admin/users","GET")).toBe(true);expect(matchesAdminRoute("/api/admin/users/u1","POST")).toBe(true);expect(matchesAdminRoute("/api/admin/users","DELETE")).toBe(false);});});
+describe("merchant route matching",()=>{it("claims supported merchant API methods",()=>{expect(matchesMerchantRoute("/api/merchant/profile","GET")).toBe(true);expect(matchesMerchantRoute("/api/merchant/products/p1","PATCH")).toBe(true);expect(matchesMerchantRoute("/api/merchant/orders/o1","POST")).toBe(true);expect(matchesMerchantRoute("/api/products","GET")).toBe(false);});});
