@@ -90,8 +90,8 @@ export async function handleAuthRoute(request: Request, env: Env): Promise<Respo
   if (url.pathname === "/api/auth/me") {
     const token = cookieValue(request, "ph_session");
     if (!token) return json({ data: { user: null } });
-    const row = await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'")
-      .bind(await digest(token), new Date().toISOString()).first<any>();
+    const row = env.ADMIN_EMAIL ? await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status='active' AND u.role='admin' AND lower(u.email)=?")
+      .bind(await digest(token), new Date().toISOString(), env.ADMIN_EMAIL.trim().toLowerCase()).first<any>() : null;
     return json({ data: { user: row ? publicUser(row) : null } });
   }
 
