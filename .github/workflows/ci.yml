@@ -16,7 +16,7 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npm test
-  worker-typecheck:
+  pages-functions-typecheck:
     runs-on: ubuntu-latest
     defaults:
       run:
