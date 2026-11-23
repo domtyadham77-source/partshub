@@ -111,15 +111,17 @@ export async function handleAuthRoute(request: Request, env: Env): Promise<Respo
 
   if (url.pathname === "/api/auth/login") {
     if (!env.ADMIN_EMAIL || !env.ADMIN_PASSWORD) return fail(503, "ADMIN_LOGIN_NOT_CONFIGURED", "Administrator sign-in is not configured yet.");
-    if (!await allowAuthAttempt(request, env, "login", 8)) return fail(429, "RATE_LIMITED", "Too many sign-in attempts. Try again in 15 minutes.");
-    const email = String(body.email || "").trim().toLowerCase(), password = String(body.password || "");
+    if (!await allowAuthAttempt(request, env, "admin-password-login", 8)) return fail(429, "RATE_LIMITED", "Too many sign-in attempts. Try again in 15 minutes.");
+    const password = typeof body.password === "string" ? body.password : "";
     const configuredEmail = env.ADMIN_EMAIL.trim().toLowerCase();
-    if (!validEmail(configuredEmail) || email !== configuredEmail || !password || !await constantTimeSecretMatch(password, env.ADMIN_PASSWORD)) return fail(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
+    if (!validEmail(configuredEmail) || !password || !await constantTimeSecretMatch(password, env.ADMIN_PASSWORD)) {
+      return fail(401, "INVALID_PASSWORD", "The administrator password is incorrect.");
+    }
     const existing = await env.DB.prepare("SELECT * FROM users WHERE email=?").bind(configuredEmail).first<any>();
     const adminCount = await env.DB.prepare("SELECT COUNT(*) AS total FROM users WHERE role='admin'").first<{ total: number }>();
-    if (existing && existing.role !== "admin") return fail(409, "ADMIN_EMAIL_IN_USE", "The configured administrator email belongs to a non-admin account. Resolve it before continuing.");
+    if (existing && existing.role !== "admin") return fail(409, "ADMIN_EMAIL_IN_USE", "The configured administrator identity belongs to a non-admin account. Resolve it before continuing.");
     if ((adminCount?.total || 0) > (existing ? 1 : 0)) return fail(409, "ADMIN_ALREADY_BOOTSTRAPPED", "More than one administrator already exists. Resolve the existing accounts before continuing.");
-    if (!existing && (adminCount?.total || 0) > 0) return fail(409, "ADMIN_ALREADY_BOOTSTRAPPED", "An administrator already exists. The configured email cannot create another administrator.");
+    if (!existing && (adminCount?.total || 0) > 0) return fail(409, "ADMIN_ALREADY_BOOTSTRAPPED", "An administrator already exists. The configured identity cannot create another administrator.");
     if (existing?.status === "suspended") return fail(403, "ACCOUNT_SUSPENDED", "This administrator account is suspended.");
     let userId = existing?.id as string | undefined;
     if (!existing) {
@@ -138,7 +140,6 @@ export async function handleAuthRoute(request: Request, env: Env): Promise<Respo
         ]);
       }
     }
-    // This is a single-owner installation: retire any legacy customer/merchant sessions.
     await env.DB.prepare("DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE role!='admin')").run();
     const session = await createSession(userId!, env);
     const row = await env.DB.prepare("SELECT * FROM users WHERE id=? AND role='admin' AND status='active'").bind(userId).first<any>();
