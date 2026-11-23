@@ -1,1 +1,8 @@
-
+import type { Env } from "../index";
+const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"}});
+const fail=(status:number,code:string,message:string)=>json({error:{code,message}},status);
+type User={id:string;fullName:string;email:string;phone:string|null;role:"customer"|"merchant"|"admin";status:"active"|"pending"|"suspended";createdAt:string};
+function cookieValue(request:Request){return request.headers.get("Cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith("ph_session="))?.slice(11)||null;}
+async function digest(value:string){const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));return [...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,"0")).join("");}
+export function matchesUsersRoute(path:string,method:string){return path==="/api/users/me"&&method==="GET";}
+export async function handleUsersRoute(request:Request,env:Env):Promise<Response|null>{const url=new URL(request.url);if(!matchesUsersRoute(url.pathname,request.method))return null;const token=cookieValue(request);if(!token)return fail(401,"UNAUTHENTICATED","Sign in to view your account.");const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(await digest(token),new Date().toISOString()).first<any>();if(!row)return fail(401,"UNAUTHENTICATED","Your session has expired. Sign in again.");const user:User={id:row.id,fullName:row.full_name,email:row.email,phone:row.phone,role:row.role,status:row.status,createdAt:row.created_at};return json({data:{user}});}
