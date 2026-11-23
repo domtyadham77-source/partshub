@@ -30,3 +30,6 @@ describe("payment service", () => {
     });
   });
 });
+
+import { matchesPaymentsRoute } from "../src/routes/payments";
+describe("payment methods route matching",()=>{it("claims the read-only payment methods endpoint",()=>{expect(matchesPaymentsRoute("/api/payments/methods","GET")).toBe(true);expect(matchesPaymentsRoute("/api/payments/methods","POST")).toBe(false);});});
