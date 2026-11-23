@@ -28,3 +28,6 @@ describe("cart validation edge cases", () => {
     expect(result.error).toContain("Invalid cart line");
   });
 });
+
+import { matchesCartRoute } from "../src/routes/cart";
+describe("cart route matching",()=>{it("claims cart validation only",()=>{expect(matchesCartRoute("/api/cart/validate","POST")).toBe(true);expect(matchesCartRoute("/api/cart/validate","GET")).toBe(false);expect(matchesCartRoute("/api/cart","POST")).toBe(false);});});
