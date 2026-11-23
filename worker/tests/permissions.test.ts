@@ -39,3 +39,8 @@ import { matchesMerchantRoute } from "../src/routes/merchants";
 
 describe("admin route matching",()=>{it("claims admin API methods",()=>{expect(matchesAdminRoute("/api/admin/users","GET")).toBe(true);expect(matchesAdminRoute("/api/admin/users/u1","POST")).toBe(true);expect(matchesAdminRoute("/api/admin/users","DELETE")).toBe(false);});});
 describe("merchant route matching",()=>{it("claims supported merchant API methods",()=>{expect(matchesMerchantRoute("/api/merchant/profile","GET")).toBe(true);expect(matchesMerchantRoute("/api/merchant/products/p1","PATCH")).toBe(true);expect(matchesMerchantRoute("/api/merchant/orders/o1","POST")).toBe(true);expect(matchesMerchantRoute("/api/products","GET")).toBe(false);});});
+
+import { matchesFavoritesRoute } from "../src/routes/favorites";
+import { matchesUsersRoute } from "../src/routes/users";
+describe("favorites route matching",()=>{it("claims user-owned favorite operations",()=>{expect(matchesFavoritesRoute("/api/favorites","GET")).toBe(true);expect(matchesFavoritesRoute("/api/favorites/p1","POST")).toBe(true);expect(matchesFavoritesRoute("/api/favorites/p1","DELETE")).toBe(true);expect(matchesFavoritesRoute("/api/favorites/p1","GET")).toBe(false);});});
+describe("user route matching",()=>{it("claims the signed-in profile endpoint",()=>{expect(matchesUsersRoute("/api/users/me","GET")).toBe(true);expect(matchesUsersRoute("/api/users/me","POST")).toBe(false);});});
