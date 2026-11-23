@@ -156,8 +156,8 @@ The following changes are on this implementation branch, not on `main`:
 - Filled the frontend page test files with module smoke tests, and added behavioral contract tests for frontend auth, cart, admin, merchant, notifications, orders, payment, upload, PWA, security and accessibility flows.
 - Updated PWA registration to use a centralized production/support guard.
 - Expanded CI so frontend build/tests and Worker typecheck/tests run for both `main` and `preview` pushes and pull requests.
-- **63 of the 79 baseline one-byte placeholders are now populated. 16 remain:** 15 disconnected Worker route modules and the invalid one-byte `src/assets/logo.png`.
-- The route modules are intentionally not filled with disconnected duplicate handlers. They need a controlled extraction from `worker/src/index.ts`, followed by wiring through the active dispatcher and route-level tests.
+- **64 of the 79 baseline one-byte placeholders are now populated. 15 remain:** 14 Worker route modules still await extraction, plus the invalid one-byte `src/assets/logo.png`.
+- Authentication is the first route extracted: `worker/src/routes/auth.ts` now owns session lookup, registration, login, logout, and password-recovery responses; `worker/src/index.ts` delegates matching auth requests to it. The remaining 14 route modules still need controlled extraction from the active entry point and route-level tests. Worker typecheck and Worker tests passed after this first extraction.
 - The page import tests are smoke tests, not a substitute for full UI interaction coverage; they should be expanded in the next quality pass.
 - The one-byte logo is a binary asset issue, not a code file. It should be replaced only with the confirmed approved logo file.
 
