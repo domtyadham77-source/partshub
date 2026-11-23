@@ -31,3 +31,10 @@ describe("product repository", () => {
 import { matchesProductsRoute } from "../src/routes/products";
 
 describe("public product route matching",()=>{it("claims public product and workshop reads",()=>{expect(matchesProductsRoute("/api/products","GET")).toBe(true);expect(matchesProductsRoute("/api/products/p1","GET")).toBe(true);expect(matchesProductsRoute("/api/workshops","GET")).toBe(true);});it("rejects unsupported methods",()=>{expect(matchesProductsRoute("/api/products","POST")).toBe(false);});});
+
+import { matchesCategoriesRoute } from "../src/routes/categories";
+import { matchesSearchRoute } from "../src/routes/search";
+import { matchesReviewsRoute } from "../src/routes/reviews";
+describe("category route matching",()=>{it("claims category listing only",()=>{expect(matchesCategoriesRoute("/api/categories","GET")).toBe(true);expect(matchesCategoriesRoute("/api/categories","POST")).toBe(false);});});
+describe("search route matching",()=>{it("claims product search reads only",()=>{expect(matchesSearchRoute("/api/search","GET")).toBe(true);expect(matchesSearchRoute("/api/search","POST")).toBe(false);});});
+describe("review route matching",()=>{it("claims product review reads and submissions",()=>{expect(matchesReviewsRoute("/api/products/p1/reviews","GET")).toBe(true);expect(matchesReviewsRoute("/api/products/p1/reviews","POST")).toBe(true);expect(matchesReviewsRoute("/api/products/p1","GET")).toBe(false);});});
