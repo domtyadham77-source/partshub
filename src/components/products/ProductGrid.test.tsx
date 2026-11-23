@@ -1,8 +1,10 @@
 import { render,screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe,expect,it } from "vitest";
+import { describe,expect,it,vi } from "vitest";
 import ProductGrid from "./ProductGrid";
 import { CartProvider } from "../../contexts/CartContext";
 import { FavoritesProvider } from "../../contexts/FavoritesContext";
+import { LanguageProvider } from "../../contexts/LanguageContext";
+vi.mock("../../contexts/AuthContext",()=>({useAuth:()=>({user:{id:"u1"},loading:false})}));
 const product={id:"p1",name:"Brake pads",category:"Car parts" as const,fitment:"Corolla",price:1000,seller:"Parts Store",rating:0,description:"",stockStatus:"in-stock" as const};
-describe("ProductGrid",()=>{it("renders an empty state",()=>{render(<ProductGrid products={[]}/>);expect(screen.getByText("No matching parts found")).toBeTruthy()});it("renders product cards",()=>{render(<MemoryRouter><CartProvider><FavoritesProvider><ProductGrid products={[product]}/></FavoritesProvider></CartProvider></MemoryRouter>);expect(screen.getByText("Brake pads")).toBeTruthy()});});
+describe("ProductGrid",()=>{it("renders an empty state",()=>{render(<LanguageProvider><ProductGrid products={[]}/></LanguageProvider>);expect(screen.getByText("No matching parts found")).toBeTruthy()});it("renders product cards",()=>{render(<MemoryRouter><LanguageProvider><CartProvider><FavoritesProvider><ProductGrid products={[product]}/></FavoritesProvider></CartProvider></LanguageProvider></MemoryRouter>);expect(screen.getByText("Brake pads")).toBeTruthy()});});
