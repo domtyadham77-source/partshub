@@ -26,3 +26,10 @@ describe("authorization helpers", () => {
     expect(isOwnerOrAdmin({ ...customer, status: "suspended" }, "u1")).toBe(false);
   });
 });
+
+import { matchesSupportRoute } from "../src/routes/support";
+
+describe("support ticket route matching",()=>{
+  it.each([["/api/support/tickets","GET"],["/api/support/tickets","POST"]])("claims %s %s",(path,method)=>expect(matchesSupportRoute(path,method)).toBe(true));
+  it.each([["/api/support/tickets/1","GET"],["/api/support","GET"],["/api/orders","POST"]])("does not claim %s %s",(path,method)=>expect(matchesSupportRoute(path,method)).toBe(false));
+});
