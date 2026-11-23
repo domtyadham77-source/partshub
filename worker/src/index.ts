@@ -34,6 +34,9 @@ import { handleCartRoute } from "./routes/cart";
 import { handleFavoritesRoute } from "./routes/favorites";
 import { handlePaymentsRoute } from "./routes/payments";
 import { handleReviewsRoute } from "./routes/reviews";
+import { handleCategoriesRoute } from "./routes/categories";
+import { handleSearchRoute } from "./routes/search";
+import { handleUsersRoute } from "./routes/users";
 
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string;business_type:string;city:string;area:string;address_line:string};
 function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
@@ -63,6 +66,9 @@ async function handle(request:Request,env:Env):Promise<Response>{
   const favoritesResponse=await handleFavoritesRoute(request,env);if(favoritesResponse)return favoritesResponse;
   const paymentsResponse=await handlePaymentsRoute(request,env);if(paymentsResponse)return paymentsResponse;
   const reviewsResponse=await handleReviewsRoute(request,env);if(reviewsResponse)return reviewsResponse;
+  const categoriesResponse=await handleCategoriesRoute(request,env);if(categoriesResponse)return categoriesResponse;
+  const searchResponse=await handleSearchRoute(request,env);if(searchResponse)return searchResponse;
+  const usersResponse=await handleUsersRoute(request,env);if(usersResponse)return usersResponse;
   const authResponse = await handleAuthRoute(request, env);
  if (authResponse) return authResponse;
  if (request.method !== "POST") return fail(405, "METHOD_NOT_ALLOWED", "Method not allowed.");
