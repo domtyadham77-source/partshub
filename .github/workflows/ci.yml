@@ -1,7 +1,7 @@
 name: Preview CI
 on:
   push:
-    branches: [preview]
+    branches: [main, preview]
   pull_request:
     branches: [preview]
   workflow_dispatch:
