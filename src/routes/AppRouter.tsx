@@ -7,7 +7,6 @@ import FavoritesPage from "../pages/FavoritesPage";
 import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
-import LoginPage from "../pages/LoginPage";
 import AdminEntryPage from "../pages/AdminEntryPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
@@ -44,9 +43,9 @@ export default function AppRouter() {
   <Route path="/products/:id" element={<ProductDetailsPage/>}/>
   <Route path="/workshops" element={<WorkshopsPage/>}/>
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
-  <Route path="/login" element={<LoginPage/>}/>
-  <Route path="/register" element={<Navigate to="/login" replace/>}/>
-  <Route path="/forgot-password" element={<Navigate to="/login" replace/>}/>
+  <Route path="/login" element={<Navigate to="/admin" replace/>}/>
+  <Route path="/register" element={<Navigate to="/admin" replace/>}/>
+  <Route path="/forgot-password" element={<Navigate to="/admin" replace/>}/>
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
