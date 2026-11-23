@@ -22,6 +22,8 @@ async function allowAuthAttempt(request:Request,env:Env,scope:string,limit:numbe
  return (row?.total||0)<limit;
 }
 
+import { handleAuthRoute } from "./routes/auth";
+
 type MerchantRow={id:string;user_id:string;store_name:string;description:string;contact_phone:string|null;status:string;business_type:string;city:string;area:string;address_line:string};
 function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
 async function merchantFor(request:Request,env:Env,allowPending=false){const user=await readUser(request,env);if(!user)return{error:fail(401,"UNAUTHENTICATED","Sign in to continue.")};if(user.role!=="merchant")return{error:fail(403,"MERCHANT_ONLY","A merchant account is required.")};const merchant=await env.DB.prepare("SELECT * FROM merchant_profiles WHERE user_id=?").bind(user.id).first<MerchantRow>();if(!merchant)return{error:fail(404,"MERCHANT_PROFILE_MISSING","Merchant profile was not found.")};if(merchant.status!=="active"&&!allowPending)return{error:fail(403,"MERCHANT_NOT_APPROVED","Your seller account must be approved before managing listings.")};return{user,merchant};}
@@ -291,35 +293,8 @@ async function handle(request:Request,env:Env):Promise<Response>{
   }
   return fail(404,"NOT_FOUND","Merchant endpoint not found.");
  }
- if(request.method==="GET"&&url.pathname==="/api/auth/me"){const user=await readUser(request,env);return json({data:{user}});}
- if(request.method==="POST"&&url.pathname==="/api/auth/logout"){const token=cookieValue(request,"ph_session");if(token)await env.DB.prepare("DELETE FROM sessions WHERE token_hash=?").bind(await digest(token)).run();return json({data:{success:true}},200,{"Set-Cookie":clearCookie()});}
- if(request.method!=="POST")return fail(405,"METHOD_NOT_ALLOWED","Method not allowed.");
- let body:any;try{body=await request.json()}catch{return fail(400,"INVALID_JSON","Request body must be valid JSON.");}
- if(url.pathname==="/api/auth/register"){
-  if(!env.DB)return fail(503,"DATABASE_NOT_CONFIGURED","The preview database is not connected yet. Please try again later.");
-  if(!await allowAuthAttempt(request,env,"register",6))return fail(429,"RATE_LIMITED","Too many sign-up attempts. Try again later.");
-  const fullName=String(body.fullName||"").trim(),email=String(body.email||"").trim().toLowerCase(),phone=String(body.phone||"").trim()||null,password=String(body.password||""),role=body.role==="merchant"?"merchant":"customer",businessType=String(body.businessType||"parts_store");
-  if(role==="merchant"&&!["parts_store","garage","maintenance_center","motorcycle_workshop"].includes(businessType))return fail(422,"INVALID_BUSINESS_TYPE","Choose a valid seller business type.");
-  if(fullName.length<2||fullName.length>90)return fail(422,"INVALID_NAME","Enter your full name.");
-  if(!validEmail(email))return fail(422,"INVALID_EMAIL","Enter a valid email address.");
-  if(phone&&phone.length>30)return fail(422,"INVALID_PHONE","Enter a valid phone number.");
-  if(password.length<10||password.length>128)return fail(422,"WEAK_PASSWORD","Password must be at least 10 characters.");
-  const existing=await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();if(existing)return fail(409,"EMAIL_EXISTS","An account with this email already exists.");
-  const id=crypto.randomUUID(),salt=randomToken(16),hash=await passwordHash(password,salt);
-  try{const statements=[env.DB.prepare("INSERT INTO users(id,full_name,email,phone,role,status,password_hash,password_salt) VALUES(?,?,?,?,?,?,?,?)").bind(id,fullName,email,phone,role,role==="merchant"?"pending":"active",hash,salt)];if(role==="merchant")statements.push(env.DB.prepare("INSERT INTO merchant_profiles(id,user_id,store_name,status,business_type) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(),id,fullName,"pending",businessType));await env.DB.batch(statements);}catch(error){const duplicate=await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(email).first();if(duplicate)return fail(409,"EMAIL_EXISTS","An account with this email already exists.");console.error("registration_database_write_failed",error);return fail(500,"REGISTRATION_FAILED","We could not create your account right now. Please try again later.");}
-  const session=await createSession(id,env);const row=await env.DB.prepare("SELECT * FROM users WHERE id=?").bind(id).first<any>();const maxAge=Math.floor((new Date(session.expires).getTime()-Date.now())/1000);
-  return json({data:{user:publicUser(row)}},201,{"Set-Cookie":cookie(session.token,maxAge)});
- }
- if(url.pathname==="/api/auth/login"){
-  if(!await allowAuthAttempt(request,env,"login",8))return fail(429,"RATE_LIMITED","Too many sign-in attempts. Try again in 15 minutes.");
-  const email=String(body.email||"").trim().toLowerCase(),password=String(body.password||"");if(!validEmail(email)||!password)return fail(422,"INVALID_CREDENTIALS","Enter your email and password.");
-  const row=await env.DB.prepare("SELECT * FROM users WHERE email=?").bind(email).first<any>();if(!row)return fail(401,"INVALID_CREDENTIALS","Email or password is incorrect.");
-  const candidate=await passwordHash(password,row.password_salt,row.password_iterations);if(candidate!==row.password_hash)return fail(401,"INVALID_CREDENTIALS","Email or password is incorrect.");
-  if(row.status==="suspended")return fail(403,"ACCOUNT_SUSPENDED","This account is suspended. Contact support.");
-  const session=await createSession(row.id,env);const maxAge=Math.floor((new Date(session.expires).getTime()-Date.now())/1000);
-  return json({data:{user:publicUser(row)}},200,{"Set-Cookie":cookie(session.token,maxAge)});
- }
- if(url.pathname==="/api/auth/forgot-password")return fail(503,"RECOVERY_NOT_CONFIGURED","Password recovery email delivery is not configured yet. Your account has not been changed.");
+ const authResponse = await handleAuthRoute(request, env);
+ if (authResponse) return authResponse;
  return fail(404,"NOT_FOUND","Endpoint not found.");
 }
 export default {async fetch(request:Request,env:Env){let response:Response;try{response=await handle(request,env)}catch(error){console.error("parts_hub_request_failed",error);response=fail(500,"INTERNAL_ERROR","The service could not complete this request. Please try again later.");}const cors=corsHeaders(request,env);const headers=new Headers(response.headers);cors.forEach((v,k)=>headers.set(k,v));return secureHeaders(new Response(response.body,{status:response.status,statusText:response.statusText,headers}));}};
