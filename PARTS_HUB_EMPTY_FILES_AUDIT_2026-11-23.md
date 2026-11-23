@@ -157,7 +157,7 @@ The following changes are on this implementation branch, not on `main`:
 - Updated PWA registration to use a centralized production/support guard.
 - Expanded CI so frontend build/tests and Worker typecheck/tests run for both `main` and `preview` pushes and pull requests.
 - **64 of the 79 baseline one-byte placeholders are now populated. 15 remain:** 14 Worker route modules still await extraction, plus the invalid one-byte `src/assets/logo.png`.
-- Authentication is the first route extracted: `worker/src/routes/auth.ts` now owns session lookup, registration, login, logout, and password-recovery responses; `worker/src/index.ts` delegates matching auth requests to it. The remaining 14 route modules still need controlled extraction from the active entry point and route-level tests. Worker typecheck and Worker tests passed after this first extraction.
+- Authentication, customer orders, customer notifications, and support tickets have been extracted into `worker/src/routes/auth.ts`, `orders.ts`, `notifications.ts`, and `support.ts`; the active entry point delegates to these modules. Route-matching tests were added for the three new modules. The remaining 11 route modules still require review against the active entry point; modules without existing endpoints must not be populated with invented functionality.
 - The page import tests are smoke tests, not a substitute for full UI interaction coverage; they should be expanded in the next quality pass.
 - The one-byte logo is a binary asset issue, not a code file. It should be replaced only with the confirmed approved logo file.
 
