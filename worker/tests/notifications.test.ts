@@ -31,3 +31,10 @@ describe("notification service", () => {
     expect(bind).toHaveBeenCalledWith(expect.any(String), "u1");
   });
 });
+
+import { matchesNotificationsRoute } from "../src/routes/notifications";
+
+describe("notification route matching",()=>{
+  it.each([["/api/notifications","GET"],["/api/notifications/n-1/read","POST"]])("claims %s %s",(path,method)=>expect(matchesNotificationsRoute(path,method)).toBe(true));
+  it.each([["/api/notifications","POST"],["/api/notifications/n-1","GET"],["/api/orders","GET"]])("does not claim %s %s",(path,method)=>expect(matchesNotificationsRoute(path,method)).toBe(false));
+});
