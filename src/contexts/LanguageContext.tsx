@@ -20,6 +20,7 @@ const translations:Record<string,{en:string;ar:string}>={
  "Returns & cancellations":{en:"Returns & cancellations",ar:"الإرجاع والإلغاء"},
  "Contact":{en:"Contact",ar:"تواصل معنا"},
  "Information and policies":{en:"Information and policies",ar:"المعلومات والسياسات"},
+ "Developed by Adham":{en:"Developed by Adham",ar:"تطوير أدهم"},
 
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
