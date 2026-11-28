@@ -74,10 +74,10 @@ export default function CarsPage(){
  }
  function chooseYear(value:number){
   const engines=model?.engines.filter(x=>value>=x.years[0]&&value<=x.years[1])||[];
-  setYear(value);setEngineIndex(engines.length>1?null:0);setTransmission(engines.length===1?engines[0].transmissions[0]||"": "");setTrim(engines.length===1?engines[0].trims?.[0]||"": "");
+  setYear(value);setEngineIndex(engines.length>1?null:0);setTransmission(engines.length===1&&engines[0].transmissions.length===1?engines[0].transmissions[0]:"");setTrim(engines.length===1&&(engines[0].trims||[]).length===1?engines[0].trims?.[0]||"": "");
  }
  function chooseEngine(index:number){
-  const next=availableEngines[index];setEngineIndex(index);setTransmission(next?.transmissions[0]||"");setTrim(next?.trims?.[0]||"");
+  const next=availableEngines[index];setEngineIndex(index);setTransmission(next?.transmissions.length===1?next.transmissions[0]:"");setTrim((next?.trims||[]).length===1?next?.trims?.[0]||"": "");
  }
  function resetMake(){setMakeId("");setParams({});setModelId("");setYear(null);setEngineIndex(null);setTransmission("");setTrim("");}
  const unsupported=!!makeId&&!make;
