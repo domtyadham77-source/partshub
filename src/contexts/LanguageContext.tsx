@@ -71,13 +71,13 @@ const translations:Record<string,{en:string;ar:string}>={
  "This product may have been removed.":{en:"This product may have been removed.",ar:"ربما تم حذف هذا المنتج."},
  "Browse parts":{en:"Browse parts",ar:"تصفح قطع الغيار"},
  "Seller":{en:"Seller",ar:"البائع"},
- "Parts Hub seller":{en:"Parts Hub seller",ar:"بائع عبر بارتس هَب"}
+ "Parts Hub seller":{en:"Parts Hub seller",ar:"بائع عبر بارتس هَب"},
 
  "Transmission":{en:"Transmission",ar:"ناقل الحركة"},
  "Trim":{en:"Trim",ar:"الفئة"},
  "Product reviews":{en:"Product reviews",ar:"تقييمات المنتج"},
  "No reviews yet. Verified purchases can leave a review after delivery.":{en:"No reviews yet. Verified purchases can leave a review after delivery.",ar:"لا توجد تقييمات بعد. يمكن للمشترين الذين استلموا المنتج تقييمه بعد التسليم."},
- "No written comment":{en:"No written comment",ar:"لا يوجد تعليق مكتوب"}
+ "No written comment":{en:"No written comment",ar:"لا يوجد تعليق مكتوب"},
 
  "Generation":{en:"Generation",ar:"الجيل"},
  "Chevrolet":{en:"Chevrolet",ar:"شيفروليه"},
