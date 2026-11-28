@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import type { ReactNode } from "react";
 import { LanguageProvider } from "../contexts/LanguageContext";
 import MarketplaceInfoPage from "./MarketplaceInfoPage";
 
-vi.mock("../components/layout/MainLayout", () => ({ default: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
+vi.mock("../components/layout/MainLayout", () => ({ default: ({ children }: { children: ReactNode }) => <>{children}</> }));
 
 describe("Marketplace information pages", () => {
  it("explains the marketplace intermediary model", () => {
