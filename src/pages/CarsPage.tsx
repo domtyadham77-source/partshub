@@ -30,6 +30,8 @@ export default function CarsPage(){
  const [items,setItems]=useState<Product[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
+ const paramMake=params.get("make")||"";
+ useEffect(()=>{if(paramMake!==makeId){setMakeId(paramMake);setModelId("");setYear(null);setEngineIndex(null);setTransmission("");setTrim("");setQuery("");}},[paramMake]);
  useEffect(()=>{let active=true;productsService.list().then(x=>{if(active)setItems(x)}).catch(e=>{if(active)setError(e instanceof Error?e.message:"Unable to load listings.")}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
  const years=useMemo(()=>model?Array.from({length:model.years[1]-model.years[0]+1},(_,i)=>model.years[1]-i):[],[model]);
  const availableEngines=model?.engines.filter(x=>year!==null&&year>=x.years[0]&&year<=x.years[1])||[];
