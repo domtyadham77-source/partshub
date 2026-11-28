@@ -33,6 +33,7 @@ import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
 import MerchantOrdersPage from "../pages/MerchantOrdersPage";
 import MerchantProfilePage from "../pages/MerchantProfilePage";
+import MarketplaceInfoPage from "../pages/MarketplaceInfoPage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
   return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
@@ -45,6 +46,10 @@ export default function AppRouter() {
   <Route path="/products/:id" element={<ProductDetailsPage/>}/>
   <Route path="/workshops" element={<WorkshopsPage/>}/>
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
+  <Route path="/about" element={<MarketplaceInfoPage kind="about"/>}/>
+  <Route path="/shipping-policy" element={<MarketplaceInfoPage kind="shipping"/>}/>
+  <Route path="/return-cancellation-policy" element={<MarketplaceInfoPage kind="returns"/>}/>
+  <Route path="/contact" element={<MarketplaceInfoPage kind="contact"/>}/>
   <Route path="/login" element={<LoginPage/>}/>
   <Route path="/register" element={<RegisterPage/>}/>
   <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
