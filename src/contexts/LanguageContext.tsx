@@ -78,6 +78,30 @@ const translations:Record<string,{en:string;ar:string}>={
  "Product reviews":{en:"Product reviews",ar:"تقييمات المنتج"},
  "No reviews yet. Verified purchases can leave a review after delivery.":{en:"No reviews yet. Verified purchases can leave a review after delivery.",ar:"لا توجد تقييمات بعد. يمكن للمشترين الذين استلموا المنتج تقييمه بعد التسليم."},
  "No written comment":{en:"No written comment",ar:"لا يوجد تعليق مكتوب"}
+
+ "Generation":{en:"Generation",ar:"الجيل"},
+ "Chevrolet":{en:"Chevrolet",ar:"شيفروليه"},
+ "Aveo":{en:"Aveo",ar:"أفيو"},
+ "Hyundai":{en:"Hyundai",ar:"هيونداي"},
+ "Elantra AD":{en:"Elantra AD",ar:"إلنترا AD"},
+ "Mercedes-Benz":{en:"Mercedes-Benz",ar:"مرسيدس-بنز"},
+ "C-Class W205 · C180":{en:"C-Class W205 · C180",ar:"الفئة C W205 · C180"},
+ "Aveo · Egypt 2018–2020":{en:"Aveo · Egypt 2018–2020",ar:"أفيو · مواصفات مصر 2018–2020"},
+ "AD":{en:"AD",ar:"AD"},
+ "W205":{en:"W205",ar:"W205"},
+ "1.5L Petrol · 1498 cc":{en:"1.5L Petrol · 1498 cc",ar:"1.5 لتر بنزين · 1498 سم³"},
+ "1.6 MPI Petrol · 1600 cc (nominal)":{en:"1.6 MPI Petrol · 1600 cc (nominal)",ar:"1.6 MPI بنزين · 1600 سم³ (تقريبية)"},
+ "1.595L Petrol · 1595 cc":{en:"1.595L Petrol · 1595 cc",ar:"1.595 لتر بنزين · 1595 سم³"},
+ "Petrol":{en:"Petrol",ar:"بنزين"},
+ "Manual 5-speed":{en:"Manual 5-speed",ar:"مانيوال 5 سرعات"},
+ "Automatic 4-speed":{en:"Automatic 4-speed",ar:"أوتوماتيك 4 سرعات"},
+ "Automatic 6-speed":{en:"Automatic 6-speed",ar:"أوتوماتيك 6 سرعات"},
+ "Market-specific · verify":{en:"Market-specific · verify",ar:"يختلف حسب السوق · يلزم التأكد"},
+ "Trim not specified in brochure":{en:"Trim not specified in brochure",ar:"الفئة غير محددة في الكتيب"},
+ "Baseline":{en:"Baseline",ar:"Baseline"},
+ "Modern":{en:"Modern",ar:"Modern"},
+ "Topline":{en:"Topline",ar:"Topline"},
+ "C180":{en:"C180",ar:"C180"}
 };
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
