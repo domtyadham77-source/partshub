@@ -60,14 +60,14 @@ export default function CarsPage(){
  return <MainLayout><section className="catalog-route vehicle-catalog">
   <Badge>{t("PARTS HUB VEHICLE FINDER")}</Badge><h1>{t("Choose your vehicle.")}</h1><p>{t("Select make, model, year and engine to narrow down parts.")}</p>
   <div className="vehicle-select-panel">
-   <label><span>{t("Make")}</span><select value={makeId} onChange={e=>changeMake(e.target.value)}>{vehicleCatalog.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+   <label><span>{t("Make")}</span><select value={makeId} onChange={e=>changeMake(e.target.value)}>{vehicleCatalog.map(x=><option key={x.id} value={x.id}>{t(x.name)}</option>)}</select></label>
    <label><span>{t("Model")}</span><select value={modelId} onChange={e=>changeModel(e.target.value)}>{make?.models.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
    <label><span>{t("Model year")}</span><select value={year} onChange={e=>setYear(Number(e.target.value))}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
-   <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{model?.engines.map((x,i)=><option key={i} value={i}>{x.label}</option>)}</select></label>
-   <label><span>{t("Transmission")}</span><select value={transmission} onChange={e=>setTransmission(e.target.value)}>{engine?.transmissions.map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+   <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{model?.engines.map((x,i)=><option key={i} value={i}>{t(x.label)}</option>)}</select></label>
+   <label><span>{t("Transmission")}</span><select value={transmission} onChange={e=>setTransmission(e.target.value)}>{engine?.transmissions.map(x=><option key={x} value={x}>{t(x)}</option>)}</select></label>
    <label><span>{t("Trim")}</span><select value={trim} onChange={e=>setTrim(e.target.value)}>{(engine?.trims||["Any trim"]).map(x=><option key={x} value={x}>{x}</option>)}</select></label>
   </div>
-  <div className="vehicle-selection-note"><strong>{make?.name} {model?.name} · {year}</strong><span>{engine?.code? t("Engine code")+": "+engine.code+" · ":""}{engine?.fuel} · {transmission} · {trim}</span><small>{t("Fitment is market- and variant-specific. Listings without engine code or exact displacement require confirmation before purchase.")}</small></div>
+  <div className="vehicle-selection-note"><strong>{t(make?.name||"")} {t(model?.name||"")} · {year}</strong><span>{t("Generation")}: {t(model?.generation||model?.name||"")} · {engine?.code? t("Engine code")+": "+engine.code+" · ":""}{t(engine?.fuel||"")} · {t(transmission)} · {t(trim)}</span><small>{t("Fitment is market- and variant-specific. Listings without engine code or exact displacement require confirmation before purchase.")}</small></div>
   <div className="catalog-controls"><label className="catalog-search"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("Search parts in this vehicle")} aria-label={t("Search parts in this vehicle")}/></label></div>
   <div className="results-line"><span>{loading?t("Loading listings…"):`${visible.length} ${t("matching listings")}`}</span><span>{t("Price comparison · lowest first")}</span></div>
   {loading?<div className="catalog-state">{t("Loading products…")}</div>:error?<div className="catalog-state catalog-error" role="alert">{error}</div>:<ProductGrid products={visible}/>}
