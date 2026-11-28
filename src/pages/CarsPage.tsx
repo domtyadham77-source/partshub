@@ -65,9 +65,6 @@ export default function CarsPage(){
   for(const p of found){const key=(p.name+"|"+p.fitment).toLowerCase();const old=grouped.get(key);if(!old||p.price<old.price)grouped.set(key,p);}
   return [...grouped.values()].sort((a,b)=>a.price-b.price);
  },[items,make,model,year,engine,query,transmission,trim,vehicleComplete]);
- function chooseMake(id:string){
-  setMakeId(id);setParams({make:id});setModelId("");setYear(null);setEngineIndex(null);setTransmission("");setTrim("");setQuery("");
- }
  function chooseModel(id:string){
   const next=make?.models.find(x=>x.id===id);
   setModelId(id);setYear(next&&next.years[0]===next.years[1]?next.years[0]:null);setEngineIndex(null);setTransmission("");setTrim("");
