@@ -12,7 +12,7 @@ const translations:Record<string,{en:string;ar:string}>={
  "Enter administrator password":{en:"Enter administrator password",ar:"اكتب كلمة مرور الأدمن"},
  "Checking password…":{en:"Checking password…",ar:"جارٍ التحقق من كلمة المرور…"},
  "Enter control panel":{en:"Enter control panel",ar:"دخول لوحة التحكم"},
- "Secure administrator access":{en:"Secure administrator access",ar:"دخول آمن للأدمن",
+ "Secure administrator access":{en:"Secure administrator access",ar:"دخول آمن للأدمن"},
 
 
  "About us":{en:"About us",ar:"معلومات عنا"},
