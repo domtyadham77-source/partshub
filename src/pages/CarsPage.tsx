@@ -38,14 +38,22 @@ export default function CarsPage(){
    if(needle&&!norm([p.name,p.fitment,p.description].join(" ")).includes(needle))return false;
    // If a listing explicitly specifies displacement or engine code, require an exact match.
    const cc=f.match(/(\d{3,4})\s*cc/i);
-   if(cc&&engine&&Number(cc[1])!==engine.cc)return false;
+   if(cc&&engine&&Math.abs(Number(cc[1])-engine.cc)>0)return false;
+   const litre=f.match(/(\\d+(?:\\.\\d+)?)\\s*(?:l|litre|liter)\\b/i);
+   if(!cc&&litre&&engine&&Math.abs(Number(litre[1])*1000-engine.cc)>30)return false;
    if(engine?.code&&!f.includes(engine.code.toLowerCase()))return false;
+   const selectedTransmission=transmission.toLowerCase();
+   if(/\\b(manual|automatic|cvt|dct)\\b/i.test(f)&&/manual|automatic|cvt|dct/.test(selectedTransmission)){
+    const listingTransmission=f.match(/\\b(manual|automatic|cvt|dct)\\b/i)?.[1]?.toLowerCase();
+    if(listingTransmission&&listingTransmission!==selectedTransmission.match(/manual|automatic|cvt|dct/)?.[0])return false;
+   }
+   if(trim&&trim!=="Any trim"&&f.match(/\\b(baseline|modern|topline|ls|lt|ltz)\\b/i)&&!f.includes(trim.toLowerCase()))return false;
    return true;
   });
   const groups=new Map<string,Product>();
   for(const p of matching){const key=(p.name+"|"+p.fitment).toLowerCase();const old=groups.get(key);if(!old||p.price<old.price)groups.set(key,p);}
   return [...groups.values()].sort((a,b)=>a.price-b.price);
- },[items,make,model,year,engine,query]);
+ },[items,make,model,year,engine,query,transmission,trim]);
  function changeMake(value:string){const next=vehicleCatalog.find(x=>x.id===value);const nextEngine=next?.models[0]?.engines[0];setMakeId(value);setModelId(next?.models[0]?.id||"");setYear(next?.models[0]?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
  function changeModel(value:string){const next=make?.models.find(x=>x.id===value);const nextEngine=next?.engines[0];setModelId(value);setYear(next?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
  function changeEngine(value:number){const next= model?.engines[value];setEngineIndex(value);setTransmission(next?.transmissions[0]||"");setTrim(next?.trims?.[0]||"Any trim");}
