@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Footer from "../components/layout/Footer";
 import MarketplaceInfoPage from "../pages/MarketplaceInfoPage";
 import App from "../App";
