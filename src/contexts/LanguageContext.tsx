@@ -72,6 +72,12 @@ const translations:Record<string,{en:string;ar:string}>={
  "Browse parts":{en:"Browse parts",ar:"تصفح قطع الغيار"},
  "Seller":{en:"Seller",ar:"البائع"},
  "Parts Hub seller":{en:"Parts Hub seller",ar:"بائع عبر بارتس هَب"}
+
+ "Transmission":{en:"Transmission",ar:"ناقل الحركة"},
+ "Trim":{en:"Trim",ar:"الفئة"},
+ "Product reviews":{en:"Product reviews",ar:"تقييمات المنتج"},
+ "No reviews yet. Verified purchases can leave a review after delivery.":{en:"No reviews yet. Verified purchases can leave a review after delivery.",ar:"لا توجد تقييمات بعد. يمكن للمشترين الذين استلموا المنتج تقييمه بعد التسليم."},
+ "No written comment":{en:"No written comment",ar:"لا يوجد تعليق مكتوب"}
 };
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
