@@ -1,13 +1,20 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import Footer from "../components/layout/Footer";
+import MarketplaceInfoPage from "../pages/MarketplaceInfoPage";
 import App from "../App";
 import CatalogPage from "../pages/CatalogPage";
+import CarsPage from "../pages/CarsPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import CartPage from "../pages/CartPage";
 import FavoritesPage from "../pages/FavoritesPage";
 import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
+import { useLanguage } from "../contexts/LanguageContext";
 import AdminEntryPage from "../pages/AdminEntryPage";
+import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
 import RequireAuth from "../components/auth/RequireAuth";
@@ -33,19 +40,24 @@ import MerchantOrdersPage from "../pages/MerchantOrdersPage";
 import MerchantProfilePage from "../pages/MerchantProfilePage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
-  return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
+  const { t } = useLanguage();
+  return <MainLayout><section className="route-panel"><Badge>{t("PARTS HUB PREVIEW")}</Badge><h1>{t(title)}</h1><p>{t(description)}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{t(link.label)} <span>↗</span></a>)}</div><p className="route-note">{t("This section is being built. No orders, payments, or account changes are processed here yet.")}</p></section></MainLayout>;
 }
 export default function AppRouter() {
- return <Routes>
+ return <div className="route-app-root"><Routes>
   <Route path="/" element={<App/>}/>
-  <Route path="/cars" element={<CatalogPage initialCategory="Car parts"/>}/>
+  <Route path="/cars" element={<CarsPage/>}/>
   <Route path="/motorcycles" element={<CatalogPage initialCategory="Motorcycle parts"/>}/>
   <Route path="/products/:id" element={<ProductDetailsPage/>}/>
   <Route path="/workshops" element={<WorkshopsPage/>}/>
   <Route path="/sell" element={<InfoPage title="Sell with Parts Hub" description="A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management."/>}/>
-  <Route path="/login" element={<Navigate to="/admin" replace/>}/>
-  <Route path="/register" element={<Navigate to="/admin" replace/>}/>
-  <Route path="/forgot-password" element={<Navigate to="/admin" replace/>}/>
+  <Route path="/about" element={<MarketplaceInfoPage kind="about"/>}/>
+  <Route path="/shipping-policy" element={<MarketplaceInfoPage kind="shipping"/>}/>
+  <Route path="/return-cancellation-policy" element={<MarketplaceInfoPage kind="returns"/>}/>
+  <Route path="/contact" element={<MarketplaceInfoPage kind="contact"/>}/>
+  <Route path="/login" element={<LoginPage/>}/>
+  <Route path="/register" element={<RegisterPage/>}/>
+  <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
@@ -71,5 +83,5 @@ export default function AppRouter() {
   <Route path="/orders/:id" element={<RequireAuth><OrderDetailsPage/></RequireAuth>}/>
   <Route path="/support" element={<RequireAuth><SupportPage/></RequireAuth>}/>
   <Route path="*" element={<MainLayout><NotFoundPage/></MainLayout>}/>
- </Routes>;
+ </Routes><Footer/></div>;
 }

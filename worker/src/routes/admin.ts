@@ -79,7 +79,7 @@ if(url.pathname.startsWith("/api/admin/")){
   }
   if(url.pathname==="/api/admin/products"&&request.method==="GET"){
    const status=url.searchParams.get("status")||"draft";if(!["draft","active","archived"].includes(status))return fail(400,"INVALID_STATUS","Choose a valid product status.");
-   const result=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
+   const result=await env.DB.prepare("SELECT p.*,m.store_name,(SELECT id FROM product_images WHERE product_id=p.id ORDER BY sort_order,id LIMIT 1) AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.status=? ORDER BY p.created_at ASC LIMIT 100").bind(status).all<any>();
    return json({data:{items:(result.results||[]).map(publicProduct)}});
   }
   if(url.pathname==="/api/admin/merchants"&&request.method==="GET"){

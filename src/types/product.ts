@@ -1,4 +1,5 @@
 export type ProductCategory = "Car parts" | "Motorcycle parts" | "Workshop";
+export type ProductOffer = { id:string; price:number; stockQuantity:number; stockStatus:"in-stock"|"limited"|"out-of-stock" };
 export type Product = {
   id: string;
   name: string;
@@ -11,4 +12,7 @@ export type Product = {
   stockStatus: "in-stock" | "limited" | "out-of-stock";
   tag?: string;
   imageUrl?: string;
+  imageUrls?: string[];
+  offerCount?: number;
+  offers?: ProductOffer[];
 };

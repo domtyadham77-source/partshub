@@ -1,7 +1,7 @@
 import {useEffect} from "react";
 import type {ReactNode} from "react";
 
-const TARGETS = "main > section, .route-panel, .auth-card, .product-card, .product-detail, .cart-page, .checkout-page, .workshops-page, .settings-option, .shared-footer, .site-footer, .admin-page > *, .merchant-page > *";
+const TARGETS = "main > section, .route-panel, .auth-card, .product-card, .product-detail, .cart-page, .checkout-page, .workshops-page, .settings-option, .shared-footer, .site-footer, .admin-page > *, .merchant-page > *, .vehicle-card, .engine-choice, .year-card";
 
 export default function GlobalMotion({children}:{children:ReactNode}){
  useEffect(()=>{

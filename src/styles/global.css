@@ -75,3 +75,52 @@ html[dir="rtl"] .language-toggle{direction:rtl}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(8){--reveal-delay:630ms}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(9){--reveal-delay:720ms}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(10){--reveal-delay:810ms}
+
+
+/* One shared footer at the application level, on every route */
+.route-app-root{min-height:100vh;display:flex;flex-direction:column}
+.route-app-root .app-shell{min-height:unset;flex:1}
+.route-app-root .shared-footer{width:100%;margin-top:auto;padding:22px max(20px,calc((100vw - 1240px)/2));display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 22px;border-top:1px solid var(--border);background:var(--background);color:var(--muted);font-size:11px}
+.route-app-root .shared-footer .brand{flex-shrink:0}
+.route-app-root .shared-footer .footer-policy-links{justify-content:center;gap:8px 18px}
+.route-app-root .shared-footer .footer-policy-links a,.route-app-root .shared-footer .footer-account-links a{font-size:10px;color:var(--muted)}
+.route-app-root .shared-footer .footer-policy-links a:hover,.route-app-root .shared-footer .footer-account-links a:hover{color:var(--orange)}
+.route-app-root .shared-footer .footer-account-links{gap:12px 16px}
+.route-app-root .shared-footer small{font-size:9px;color:var(--muted)}
+@media(max-width:700px){.route-app-root .shared-footer{padding:18px 20px;justify-content:flex-start;gap:13px}.route-app-root .shared-footer .footer-policy-links{justify-content:flex-start;gap:9px 14px}.route-app-root .shared-footer .footer-account-links{gap:10px 14px}.route-app-root .shared-footer small{flex:1 1 100%}}
+
+
+/* Card-based manufacturer/model/year/engine selection */
+.make-card-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:22px}
+.make-card-grid .vehicle-card{min-height:190px}
+.make-card-grid-compact{grid-template-columns:repeat(4,minmax(0,1fr))}
+.vehicle-card-grid.model-card-grid{grid-template-columns:repeat(3,minmax(0,1fr));margin:22px 0}
+.vehicle-card.model-card{min-height:210px;text-align:left;padding:0;color:var(--text);cursor:pointer}
+.vehicle-card.model-card.selected,.vehicle-card.make-card.selected{border-color:var(--orange);box-shadow:0 0 0 1px #ff950055}
+.vehicle-card.model-card .vehicle-card-copy strong{font-size:17px}
+.vehicle-card.model-card .vehicle-card-copy em{font-size:10px}
+.vehicle-card-grid.year-card-grid{grid-template-columns:repeat(6,minmax(0,1fr));margin:18px 0}
+.year-card{min-height:65px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#191c1f;color:var(--text);font-weight:800;font-size:15px;transition:transform .22s,border-color .22s,background .22s}
+.year-card:hover{transform:translateY(-3px);border-color:#ff950088}
+.year-card.selected{border-color:var(--orange);background:#ff950015;color:var(--orange)}
+.vehicle-step{margin:32px 0 26px;scroll-margin-top:90px}
+.vehicle-step-heading{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:14px}
+.vehicle-step-heading h2{margin:7px 0 0;font-size:clamp(20px,3vw,28px)}
+.vehicle-step-heading p{margin:0;color:var(--muted);font-size:11px}
+.vehicle-step-kicker{font-size:9px;letter-spacing:1.6px;color:var(--orange);font-weight:800}
+.vehicle-step .vehicle-card-grid{margin-top:18px}
+.vehicle-step .vehicle-card-grid.engine-card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.engine-choice{min-height:110px;padding:17px;text-align:left;border:1px solid var(--border);border-radius:13px;background:#191c1f;color:var(--text);display:grid;gap:8px;transition:transform .22s,border-color .22s}
+.engine-choice:hover{transform:translateY(-3px);border-color:#ff950088}
+.engine-choice.selected{border-color:var(--orange);background:#ff950012}
+.engine-choice strong{font-size:15px}
+.engine-choice span{font-size:10px;color:var(--muted);line-height:1.6}
+.vehicle-choice-summary{display:grid;gap:6px;padding:17px 19px;margin:24px 0;border:1px solid #ff950044;border-radius:14px;background:#ff950008}
+.vehicle-choice-summary strong{font-size:14px}
+.vehicle-choice-summary span,.vehicle-choice-summary small{font-size:10px;line-height:1.7;color:var(--muted)}
+.vehicle-catalog-empty{padding:38px 18px;margin-top:20px;border:1px dashed var(--border);border-radius:14px;color:var(--muted);text-align:center;font-size:12px;line-height:1.8}
+.vehicle-catalog-empty strong{display:block;color:var(--text);font-size:15px;margin-bottom:6px}
+.vehicle-back-button{border:1px solid var(--border);background:#202428;color:var(--text);border-radius:9px;padding:9px 13px;font-size:11px}
+.vehicle-coverage-note{font-size:10px;line-height:1.7;color:var(--muted);margin-top:24px}
+@media(max-width:850px){.make-card-grid,.make-card-grid-compact{grid-template-columns:repeat(3,minmax(0,1fr))}.vehicle-card-grid.model-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.vehicle-card-grid.year-card-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.make-card-grid,.make-card-grid-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.make-card-grid .vehicle-card{min-height:145px}.vehicle-card-grid.model-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.vehicle-card.model-card{min-height:160px}.vehicle-card-grid.year-card-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.vehicle-step{margin:25px 0}.vehicle-step-heading{align-items:start;flex-direction:column}.vehicle-step .vehicle-card-grid.engine-card-grid{grid-template-columns:1fr}.engine-choice{min-height:85px}.vehicle-card.model-card .vehicle-card-copy strong{font-size:13px}.vehicle-card.model-card .vehicle-card-copy em{font-size:8px}}
