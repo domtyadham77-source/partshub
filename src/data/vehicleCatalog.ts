@@ -12,7 +12,7 @@ export const vehicleCatalog: VehicleMake[] = [
   {id:"elantra-ad",name:"Elantra AD",years:[2024,2026],engines:[{label:"1.6 MPI Petrol · 1600 cc (nominal)",cc:1600,fuel:"Petrol",transmissions:["Automatic 6-speed"],trims:["Baseline","Modern","Topline"],years:[2024,2026],source:"https://hyundai-egypt.net/wp-content/uploads/2024/08/Elantra-AD-Brochure_updated.pdf"}]}
  ]},
  { id:"mercedes-benz", name:"Mercedes-Benz", models:[
-  {id:"c-class-w205-c180",name:"C-Class W205 · C180",years:[2015,2015],engines:[{label:"1.595L Petrol · 1595 cc · M274.910",cc:1595,fuel:"Petrol",transmissions:["Market-specific · verify"],trims:["C180"],years:[2015,2015],source:"https://group.mercedes-benz.com/documents/sustainability/product/daimler-environmental-certificate-mb-c-class.pdf"}]}
+  {id:"c-class-w205-c180",name:"C-Class W205 · C180",years:[2015,2015],engines:[{label:"1.595L Petrol · 1595 cc",cc:1595,fuel:"Petrol",transmissions:["Market-specific · verify"],trims:["C180"],years:[2015,2015],source:"https://group.mercedes-benz.com/documents/sustainability/product/daimler-environmental-certificate-mb-c-class.pdf"}]}
  ]}
 ];
 
