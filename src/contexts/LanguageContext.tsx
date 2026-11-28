@@ -159,7 +159,6 @@ const translations:Record<string,{en:string;ar:string}>={
  "BYD":{en:"BYD",ar:"بي واي دي"},
  "JAC":{en:"JAC",ar:"جاك"},
  "Isuzu":{en:"Isuzu",ar:"إيسوزو"},
- "Mercedes-Benz":{en:"Mercedes-Benz",ar:"مرسيدس بنز"}
 
 };
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
