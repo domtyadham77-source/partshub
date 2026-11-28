@@ -16,7 +16,7 @@ export default function CarsPage(){
  const model=make?.models.find(x=>x.id===modelId)||make?.models[0];
  const [year,setYear]=useState(model?.years[1]||new Date().getFullYear());
  const [engineIndex,setEngineIndex]=useState(0);
- const engine=model?.engines[engineIndex]||model?.engines[0];
+ const availableEngines=model?.engines.filter(x=>year>=x.years[0]&&year<=x.years[1])||[];\n const safeEngineIndex=Math.min(engineIndex,Math.max(0,availableEngines.length-1));\n const engine=availableEngines[safeEngineIndex]||model?.engines[0];
  const [transmission,setTransmission]=useState(engine?.transmissions[0]||"");
  const [trim,setTrim]=useState(engine?.trims?.[0]||"Any trim");
  const [query,setQuery]=useState("");
@@ -56,14 +56,14 @@ export default function CarsPage(){
  },[items,make,model,year,engine,query,transmission,trim]);
  function changeMake(value:string){const next=vehicleCatalog.find(x=>x.id===value);const nextEngine=next?.models[0]?.engines[0];setMakeId(value);setModelId(next?.models[0]?.id||"");setYear(next?.models[0]?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
  function changeModel(value:string){const next=make?.models.find(x=>x.id===value);const nextEngine=next?.engines[0];setModelId(value);setYear(next?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
- function changeEngine(value:number){const next= model?.engines[value];setEngineIndex(value);setTransmission(next?.transmissions[0]||"");setTrim(next?.trims?.[0]||"Any trim");}
+ function changeEngine(value:number){const next= availableEngines[value];setEngineIndex(value);setTransmission(next?.transmissions[0]||"");setTrim(next?.trims?.[0]||"Any trim");}
  return <MainLayout><section className="catalog-route vehicle-catalog">
   <Badge>{t("PARTS HUB VEHICLE FINDER")}</Badge><h1>{t("Choose your vehicle.")}</h1><p>{t("Select make, model, year and engine to narrow down parts.")}</p>
   <div className="vehicle-select-panel">
    <label><span>{t("Make")}</span><select value={makeId} onChange={e=>changeMake(e.target.value)}>{vehicleCatalog.map(x=><option key={x.id} value={x.id}>{t(x.name)}</option>)}</select></label>
    <label><span>{t("Model")}</span><select value={modelId} onChange={e=>changeModel(e.target.value)}>{make?.models.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
-   <label><span>{t("Model year")}</span><select value={year} onChange={e=>setYear(Number(e.target.value))}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
-   <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{model?.engines.map((x,i)=><option key={i} value={i}>{t(x.label)}</option>)}</select></label>
+   <label><span>{t("Model year")}</span><select value={year} onChange={e=>setYear(Number(e.target.value));setEngineIndex(0)}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
+   <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{availableEngines.map((x,i)=><option key={x.code||x.cc+"-"+x.label} value={i}>{t(x.label)}{x.code?" · "+x.code:""}</option>)}</select></label>
    <label><span>{t("Transmission")}</span><select value={transmission} onChange={e=>setTransmission(e.target.value)}>{engine?.transmissions.map(x=><option key={x} value={x}>{t(x)}</option>)}</select></label>
    <label><span>{t("Trim")}</span><select value={trim} onChange={e=>setTrim(e.target.value)}>{(engine?.trims||["Any trim"]).map(x=><option key={x} value={x}>{x}</option>)}</select></label>
   </div>
