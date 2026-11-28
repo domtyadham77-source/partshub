@@ -10,6 +10,9 @@ import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
 import AdminEntryPage from "../pages/AdminEntryPage";
+import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import AccountPage from "../pages/AccountPage";
 import SettingsPage from "../pages/SettingsPage";
 import RequireAuth from "../components/auth/RequireAuth";
@@ -49,9 +52,9 @@ export default function AppRouter() {
   <Route path="/shipping-policy" element={<MarketplaceInfoPage kind="shipping"/>}/>
   <Route path="/return-cancellation-policy" element={<MarketplaceInfoPage kind="returns"/>}/>
   <Route path="/contact" element={<MarketplaceInfoPage kind="contact"/>}/>
-  <Route path="/login" element={<Navigate to="/admin" replace/>}/>
-  <Route path="/register" element={<Navigate to="/admin" replace/>}/>
-  <Route path="/forgot-password" element={<Navigate to="/admin" replace/>}/>
+  <Route path="/login" element={<LoginPage/>}/>
+  <Route path="/register" element={<RegisterPage/>}/>
+  <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
   <Route path="/account" element={<AccountPage/>}/>
   <Route path="/settings" element={<RequireAuth><SettingsPage/></RequireAuth>}/>
   <Route path="/merchant" element={<RequireAuth roles={["merchant"]}><MerchantDashboardPage/></RequireAuth>}/>
