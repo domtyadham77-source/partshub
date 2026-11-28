@@ -5,7 +5,7 @@ const fail=(status:number,code:string,message:string)=>json({error:{code,message
 function cookieValue(request:Request){return request.headers.get("Cookie")?.split(";").map(x=>x.trim()).find(x=>x.startsWith("ph_session="))?.slice(11)||null;}
 async function digest(value:string){const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));return [...new Uint8Array(bytes)].map(b=>b.toString(16).padStart(2,"0")).join("");}
 async function readUser(request:Request,env:Env):Promise<User|null>{const token=cookieValue(request);if(!token)return null;const row=await env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.status!='suspended'").bind(await digest(token),new Date().toISOString()).first<any>();return row?{id:row.id,fullName:row.full_name,email:row.email,phone:row.phone,role:row.role,status:row.status,createdAt:row.created_at}:null;}
-function publicProduct(row:any){return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:row.store_name,imageUrl:row.image_id?"/api/images/"+row.image_id:null,createdAt:row.created_at};}
+function publicProduct(row:any){let imageUrls:string[]=[];try{imageUrls=Array.isArray(row.image_urls)?row.image_urls:row.image_urls?JSON.parse(row.image_urls):[];}catch{imageUrls=[];}if(!imageUrls.length&&row.image_id)imageUrls=["/api/images/"+row.image_id];return{id:row.id,name:row.name,category:row.category,fitment:row.fitment,sku:row.sku,description:row.description,pricePiasters:row.price_piasters,stockQuantity:row.stock_quantity,status:row.status,seller:"Parts Hub",offerCount:row.offer_count||1,imageUrl:imageUrls[0]||null,imageUrls,createdAt:row.created_at};}
 export function matchesProductsRoute(path:string,method:string){return (path==="/api/products"||path.startsWith("/api/products/"))&&method==="GET"||path==="/api/workshops"&&method==="GET";}
 export async function handleProductsRoute(request:Request,env:Env):Promise<Response|null>{const url=new URL(request.url);if(!matchesProductsRoute(url.pathname,request.method))return null;
 if(url.pathname==="/api/workshops"&&request.method==="GET"){
@@ -15,14 +15,19 @@ if(url.pathname==="/api/workshops"&&request.method==="GET"){
  if(url.pathname==="/api/products"&&request.method==="GET"){
   const q=(url.searchParams.get("q")||"").trim().slice(0,80),category=url.searchParams.get("category")||"",limit=Math.min(48,Math.max(1,Number(url.searchParams.get("limit"))||24));
   if(category&&!["car_parts","motorcycle_parts","workshop"].includes(category))return fail(400,"INVALID_CATEGORY","Choose a valid product category.");
-  let sql="SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.status='active' AND m.status='active' AND u.status='active'";
+  let sql="SELECT p.*,m.store_name,(SELECT id FROM product_images WHERE product_id=p.id ORDER BY sort_order,id LIMIT 1) AS image_id,(SELECT COUNT(*) FROM products p2 JOIN merchant_profiles m2 ON m2.id=p2.merchant_id JOIN users u2 ON u2.id=m2.user_id WHERE p2.status='active' AND m2.status='active' AND u2.status='active' AND p2.category=p.category AND lower(trim(p2.name))=lower(trim(p.name)) AND lower(trim(p2.fitment))=lower(trim(p.fitment))) AS offer_count FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.status='active' AND m.status='active' AND u.status='active'";
   const values:(string|number)[]=[];if(category){sql+=" AND p.category=?";values.push(category);}if(q){sql+=" AND (p.name LIKE ? OR p.fitment LIKE ? OR p.sku LIKE ?)";values.push("%"+q+"%","%"+q+"%","%"+q+"%");}
   sql+=" ORDER BY p.created_at DESC LIMIT ?";values.push(limit);
   const result=await env.DB.prepare(sql).bind(...values).all<any>();return json({data:{items:(result.results||[]).map(publicProduct)}});
  }
  if(url.pathname.startsWith("/api/products/")&&request.method==="GET"){
-  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
-  return row?json({data:{product:publicProduct(row)}}):fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
+  const id=url.pathname.slice("/api/products/".length);const row=await env.DB.prepare("SELECT p.*,m.store_name,(SELECT id FROM product_images WHERE product_id=p.id ORDER BY sort_order,id LIMIT 1) AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.id=? AND p.status='active' AND m.status='active' AND u.status='active'").bind(id).first<any>();
+  if(!row)return fail(404,"PRODUCT_NOT_FOUND","This product listing is unavailable.");
+  const imageRows=await env.DB.prepare("SELECT id FROM product_images WHERE product_id=? ORDER BY sort_order,id").bind(id).all<any>();
+  const imageUrls=(imageRows.results||[]).map((x:any)=>"/api/images/"+x.id);
+  const offers=await env.DB.prepare("SELECT p.id,p.price_piasters,p.stock_quantity FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id JOIN users u ON u.id=m.user_id WHERE p.status='active' AND m.status='active' AND u.status='active' AND p.category=? AND lower(trim(p.name))=lower(trim(?)) AND lower(trim(p.fitment))=lower(trim(?)) ORDER BY p.price_piasters ASC").bind(row.category,row.name,row.fitment).all<any>();
+  const offerRows=offers.results||[];
+  return json({data:{product:{...publicProduct({...row,image_urls:imageUrls,offer_count:offerRows.length}),offers:offerRows.map((offer:any)=>({id:offer.id,pricePiasters:offer.price_piasters,stockQuantity:offer.stock_quantity}))}}});
  }
  
 return null;}

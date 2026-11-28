@@ -1,11 +1,12 @@
 import { Link,useNavigate } from "react-router-dom";
-import { Bike, CarFront, Wrench, Star, Plus, Heart } from "lucide-react";
+import { Bike, CarFront, Wrench, Plus, Heart } from "lucide-react";
 import type { Product } from "../../types/product";
 import { formatCurrency } from "../../utils/formatCurrency";
 import Badge from "../ui/Badge";
 import { useCart } from "../../contexts/CartContext";
 import { useFavorites } from "../../contexts/FavoritesContext";
 import {useAuth} from "../../contexts/AuthContext";
+import {useLanguage} from "../../contexts/LanguageContext";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
@@ -13,6 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const navigate=useNavigate();
   const addToCart=()=>{if(loading)return;if(!user){navigate("/login",{state:{from:"/cart"}});return;}addItem(product)};
   const { isFavorite, toggleFavorite } = useFavorites();
+  const {t}=useLanguage();
   const Icon = product.category === "Motorcycle parts" ? Bike : product.category === "Workshop" ? Wrench : CarFront;
   return <article className="product-card" data-scroll-reveal>
     <button className={`favorite-toggle ${isFavorite(product.id) ? "is-favorite" : ""}`} onClick={() => toggleFavorite(product.id)} aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}><Heart size={17} fill={isFavorite(product.id) ? "currentColor" : "none"}/></button>
@@ -20,6 +22,6 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="product-visual">{product.imageUrl?<img className="product-card-image" src={product.imageUrl} alt={product.name}/>:<Icon size={62} strokeWidth={1}/ >}{product.tag && <span className="product-tag">{product.tag}</span>}<span className="visual-code">{product.id.toUpperCase()}</span></div>
       <div className="product-info"><span className="product-category">{product.category}</span><h3>{product.name}</h3><p>{product.fitment}</p></div>
     </Link>
-    <div className="product-info product-card-bottom"><div className="seller-line"><span>{product.seller}</span>{product.rating && product.rating > 0 ? <span><Star size={12} fill="currentColor"/> {product.rating.toFixed(1)}</span> : <span>New listing</span>}</div><div className="product-bottom"><b>{formatCurrency(product.price)}</b><button onClick={addToCart} aria-label={`Add ${product.name} to cart`} disabled={product.stockStatus === "out-of-stock"}><Plus size={19}/></button></div>{product.stockStatus === "out-of-stock" && <Badge tone="neutral">Out of stock</Badge>}</div>
+    <div className="product-info product-card-bottom"><div className="seller-line"><span>{t("Parts Hub")}</span><span>{(product.offerCount||1)>1?t("Compare offers")+" · "+product.offerCount:t("Seller identity hidden")}</span></div><div className="product-bottom"><b>{formatCurrency(product.price)}</b><button onClick={addToCart} aria-label={`Add ${product.name} to cart`} disabled={product.stockStatus === "out-of-stock"}><Plus size={19}/></button></div>{product.stockStatus === "out-of-stock" && <Badge tone="neutral">Out of stock</Badge>}</div>
   </article>;
 }

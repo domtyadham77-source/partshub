@@ -53,11 +53,12 @@ if(url.pathname.startsWith("/api/merchant/")){
    if(!["image/jpeg","image/png","image/webp"].includes(file.type))return fail(422,"INVALID_IMAGE_TYPE","Only JPG, PNG, and WebP images are supported.");
    if(file.size<1||file.size>1000000)return fail(413,"IMAGE_TOO_LARGE","Edited images must be 1 MB or smaller.");
    const id=crypto.randomUUID(),bytes=new Uint8Array(await file.arrayBuffer());
-   await env.DB.prepare("INSERT INTO product_images(id,product_id,content_type,byte_size,image_data) VALUES(?,?,?,?,?) ON CONFLICT(product_id) DO UPDATE SET id=excluded.id,content_type=excluded.content_type,byte_size=excluded.byte_size,image_data=excluded.image_data,created_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')").bind(id,productId,file.type,file.size,bytes).run();
+   const order=await env.DB.prepare("SELECT COALESCE(MAX(sort_order),-1)+1 AS next FROM product_images WHERE product_id=?").bind(productId).first<any>();
+   await env.DB.prepare("INSERT INTO product_images(id,product_id,content_type,byte_size,image_data,sort_order) VALUES(?,?,?,?,?,?)").bind(id,productId,file.type,file.size,bytes,Number(order?.next)||0).run();
    return json({data:{imageUrl:"/api/images/"+id}},201);
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
+   const rows=await env.DB.prepare("SELECT p.*,m.store_name,(SELECT id FROM product_images WHERE product_id=p.id ORDER BY sort_order,id LIMIT 1) AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
    return json({data:{items:(rows.results||[]).map(publicProduct)}});
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="POST"){

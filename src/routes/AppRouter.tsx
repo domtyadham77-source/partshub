@@ -3,6 +3,7 @@ import Footer from "../components/layout/Footer";
 import MarketplaceInfoPage from "../pages/MarketplaceInfoPage";
 import App from "../App";
 import CatalogPage from "../pages/CatalogPage";
+import CarsPage from "../pages/CarsPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import CartPage from "../pages/CartPage";
 import FavoritesPage from "../pages/FavoritesPage";
@@ -45,7 +46,7 @@ function InfoPage({ title, description, links = [] }: { title: string; descripti
 export default function AppRouter() {
  return <div className="route-app-root"><Routes>
   <Route path="/" element={<App/>}/>
-  <Route path="/cars" element={<CatalogPage initialCategory="Car parts"/>}/>
+  <Route path="/cars" element={<CarsPage/>}/>
   <Route path="/motorcycles" element={<CatalogPage initialCategory="Motorcycle parts"/>}/>
   <Route path="/products/:id" element={<ProductDetailsPage/>}/>
   <Route path="/workshops" element={<WorkshopsPage/>}/>
