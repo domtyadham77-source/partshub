@@ -62,7 +62,7 @@ export default function CarsPage(){
   <div className="vehicle-select-panel">
    <label><span>{t("Make")}</span><select value={makeId} onChange={e=>changeMake(e.target.value)}>{vehicleCatalog.map(x=><option key={x.id} value={x.id}>{t(x.name)}</option>)}</select></label>
    <label><span>{t("Model")}</span><select value={modelId} onChange={e=>changeModel(e.target.value)}>{make?.models.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
-   <label><span>{t("Model year")}</span><select value={year} onChange={e=>setYear(Number(e.target.value));setEngineIndex(0)}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
+   <label><span>{t("Model year")}</span><select value={year} onChange={e=>{setYear(Number(e.target.value));setEngineIndex(0)}}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
    <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{availableEngines.map((x,i)=><option key={x.code||x.cc+"-"+x.label} value={i}>{t(x.label)}{x.code?" · "+x.code:""}</option>)}</select></label>
    <label><span>{t("Transmission")}</span><select value={transmission} onChange={e=>setTransmission(e.target.value)}>{engine?.transmissions.map(x=><option key={x} value={x}>{t(x)}</option>)}</select></label>
    <label><span>{t("Trim")}</span><select value={trim} onChange={e=>setTrim(e.target.value)}>{(engine?.trims||["Any trim"]).map(x=><option key={x} value={x}>{x}</option>)}</select></label>
