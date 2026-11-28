@@ -19,5 +19,6 @@ export default function Footer() {
    <Link to="/account">{t("My account")}</Link>
   </div>
   <small>© {new Date().getFullYear()} Parts Hub. {t("Parts for the road ahead.")}</small>
+  <small className="developer-credit">{t("Developed by Adham")}</small>
  </footer>;
 }
