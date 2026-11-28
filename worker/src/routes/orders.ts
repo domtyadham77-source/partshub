@@ -11,7 +11,7 @@ export function matchesOrdersRoute(path:string,method:string){return (path==="/a
 export async function handleOrdersRoute(request:Request,env:Env):Promise<Response|null>{const url=new URL(request.url);if(!matchesOrdersRoute(url.pathname,request.method))return null;
 if(url.pathname==="/api/orders"&&request.method==="GET"){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to view your orders.");
-  const result=await env.DB.prepare("SELECT o.*,'Parts Hub' AS store_name FROM orders o WHERE o.customer_id=? ORDER BY o.created_at DESC LIMIT 100").bind(user.id).all<any>();
+  const result=await env.DB.prepare("SELECT o.id,o.order_number,o.status,o.subtotal_piasters,o.shipping_fee_piasters,o.total_piasters,o.payment_method,o.payment_status,o.recipient_name,o.recipient_phone,o.address_line,o.city,o.area,o.notes,o.created_at,o.updated_at,'Parts Hub' AS store_name FROM orders o WHERE o.customer_id=? ORDER BY o.created_at DESC LIMIT 100").bind(user.id).all<any>();
   return json({data:{items:result.results||[]}});
  }
  if(url.pathname==="/api/orders"&&request.method==="POST"){
@@ -45,7 +45,7 @@ if(url.pathname==="/api/orders"&&request.method==="GET"){
   const user=await readUser(request,env);if(!user)return fail(401,"UNAUTHENTICATED","Sign in to continue.");
   const segments=url.pathname.split("/").filter(Boolean),id=segments[2];
   if(segments.length===3&&request.method==="GET"){
-   const order=await env.DB.prepare("SELECT o.*,'Parts Hub' AS store_name FROM orders o WHERE o.id=? AND o.customer_id=?").bind(id,user.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
+   const order=await env.DB.prepare("SELECT o.id,o.order_number,o.status,o.subtotal_piasters,o.shipping_fee_piasters,o.total_piasters,o.payment_method,o.payment_status,o.recipient_name,o.recipient_phone,o.address_line,o.city,o.area,o.notes,o.created_at,o.updated_at,'Parts Hub' AS store_name FROM orders o WHERE o.id=? AND o.customer_id=?").bind(id,user.id).first<any>();if(!order)return fail(404,"ORDER_NOT_FOUND","Order was not found.");
    const items=await env.DB.prepare("SELECT product_id,product_name,sku,unit_price_piasters,quantity,line_total_piasters FROM order_items WHERE order_id=?").bind(id).all<any>();return json({data:{order,items:items.results||[]}});
   }
   if(segments.length===4&&segments[3]==="cancel"&&request.method==="POST"){
