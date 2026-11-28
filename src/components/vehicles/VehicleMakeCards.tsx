@@ -5,9 +5,9 @@ import {vehicleCatalog} from "../../data/vehicleCatalog";
 
 const photos:Record<string,string>={
  "chevrolet":"https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85",
- "hyundai":"https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1000&q=85",
+ "hyundai":"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1000&q=85",
  "mercedes-benz":"https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1000&q=85",
- "opel":"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1000&q=85"
+ "opel":"https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=1000&q=85"
 };
 const extraMakes=[{id:"opel",name:"Opel"}];
 
