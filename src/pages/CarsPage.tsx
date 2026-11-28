@@ -12,7 +12,7 @@ import "../styles/catalog.css";
 
 const modelPhotos:Record<string,string>={
  "aveo":"https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85",
- "elantra-ad":"https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1000&q=85",
+ "elantra-ad":"https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1000&q=85",
  "c-class-w205-c180":"https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1000&q=85"
 };
 export default function CarsPage(){
