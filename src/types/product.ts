@@ -12,6 +12,7 @@ export type Product = {
   stockStatus: "in-stock" | "limited" | "out-of-stock";
   tag?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   offerCount?: number;
   offers?: ProductOffer[];
 };
