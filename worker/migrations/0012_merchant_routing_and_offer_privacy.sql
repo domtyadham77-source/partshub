@@ -72,3 +72,19 @@ INSERT OR IGNORE INTO vehicle_engine_variants(id,model_id,label,engine_cc,engine
  ('engine-aveo-1498-at','model-chevrolet-aveo-2019','1.5L petrol · 1498 cc',1498,NULL,'Petrol','Automatic 4-speed',2018,2020,'egypt','Chevrolet Egypt / Middle East official Aveo 2019 brochure','https://www.chevroletarabia.com/content/dam/chevrolet/middle-east/egypt/english/index/cars/2019-aveo/mov/02-pdfs/aveo.pdf'),
  ('engine-elantra-ad-1600','model-hyundai-elantra-ad','1.6 MPI petrol · 1600 cc nominal',1600,NULL,'Petrol','Automatic 6-speed',2024,2026,'egypt','Hyundai Egypt Elantra AD brochure; 2026 Egyptian listing spec','https://hyundai-egypt.net/wp-content/uploads/2024/08/Elantra-AD-Brochure_updated.pdf'),
  ('engine-mercedes-c180-1595','model-mercedes-c180-w205-2015','1.595L petrol · 1595 cc',1595,NULL,'Petrol','Market-specific; verify',2015,2015,'global','Mercedes-Benz C-Class technical environmental certificate; confirm import-market variant','https://group.mercedes-benz.com/documents/sustainability/product/daimler-environmental-certificate-mb-c-class.pdf');
+
+-- Upgrade product gallery from one image per listing to an ordered multi-image gallery.
+ALTER TABLE product_images RENAME TO product_images_single;
+CREATE TABLE product_images (
+ id TEXT PRIMARY KEY,
+ product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+ content_type TEXT NOT NULL CHECK(content_type IN ('image/jpeg','image/png','image/webp')),
+ byte_size INTEGER NOT NULL CHECK(byte_size>0 AND byte_size<=1000000),
+ image_data BLOB NOT NULL,
+ sort_order INTEGER NOT NULL DEFAULT 0,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+INSERT INTO product_images(id,product_id,content_type,byte_size,image_data,sort_order,created_at)
+ SELECT id,product_id,content_type,byte_size,image_data,0,created_at FROM product_images_single;
+DROP TABLE product_images_single;
+CREATE INDEX IF NOT EXISTS idx_product_images_product_order ON product_images(product_id,sort_order);
