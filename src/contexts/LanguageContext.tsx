@@ -12,9 +12,9 @@ const translations:Record<string,{en:string;ar:string}>={
  "Enter administrator password":{en:"Enter administrator password",ar:"اكتب كلمة مرور الأدمن"},
  "Checking password…":{en:"Checking password…",ar:"جارٍ التحقق من كلمة المرور…"},
  "Enter control panel":{en:"Enter control panel",ar:"دخول لوحة التحكم"},
- "Secure administrator access":{en:"Secure administrator access",ar:"دخول آمن للأدمن"}
+ "Secure administrator access":{en:"Secure administrator access",ar:"دخول آمن للأدمن",
 
-};
+
  "About us":{en:"About us",ar:"معلومات عنا"},
  "Shipping":{en:"Shipping",ar:"الشحن"},
  "Returns & cancellations":{en:"Returns & cancellations",ar:"الإرجاع والإلغاء"},
@@ -40,7 +40,7 @@ const translations:Record<string,{en:string;ar:string}>={
  "This section is being built. No orders, payments, or account changes are processed here yet.":{en:"This section is being built. No orders, payments, or account changes are processed here yet.",ar:"نعمل على تجهيز هذا القسم. لا تتم معالجة الطلبات أو المدفوعات أو تغييرات الحساب حاليًا."},
  "Sell with Parts Hub":{en:"Sell with Parts Hub",ar:"بيع مع بارتس هَب"},
  "A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management.":{en:"A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management.",ar:"نعمل على تجهيز مساحة خاصة بالتجار للتسجيل وإدارة المخزون والأسعار والطلبات."},
-
+};
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
 export function LanguageProvider({children}:{children:ReactNode}){
