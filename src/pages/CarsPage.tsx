@@ -94,26 +94,26 @@ export default function CarsPage(){
   {make&&<div className="vehicle-step" id="vehicle-model-step">
    <div className="vehicle-step-heading"><div><span className="vehicle-step-kicker">{t("STEP 2")}</span><h2>{t("Choose model")}</h2></div></div>
    <div className="vehicle-card-grid model-card-grid">
-    {make.models.map((item,index)=><button key={item.id} data-global-reveal className={`vehicle-card model-card ${modelId===item.id?"selected":""}`} onClick={()=>chooseModel(item.id)}>
+    {make.models.map((item,index)=><button key={item.id} className={`vehicle-card model-card ${modelId===item.id?"selected":""}`} onClick={()=>chooseModel(item.id)}>
      <img src={modelPhotos[item.id]||modelPhotos["aveo"]} alt={item.name+" vehicle"} loading="lazy"/><span className="vehicle-card-shade"/><span className="vehicle-card-copy"><small>{String(index+1).padStart(2,"0")} / {t("MODEL")}</small><strong>{t(item.name)}</strong><em>{item.years[0]} – {item.years[1]} · {t(item.generation||item.name)}</em></span>
     </button>)}
    </div>
   </div>}
   {model&&<div className="vehicle-step" id="vehicle-year-step">
    <div className="vehicle-step-heading"><div><span className="vehicle-step-kicker">{t("STEP 3")}</span><h2>{t("Choose model year")}</h2></div><p>{t(model.name)} · {model.years[0]}–{model.years[1]}</p></div>
-   {years.length===1?<div className="vehicle-choice-summary"><strong>{year}</strong><span>{t("Only one model year is listed for this catalog entry.")}</span></div>:<div className="vehicle-card-grid year-card-grid">{years.map(y=><button key={y} data-global-reveal className={`year-card ${year===y?"selected":""}`} onClick={()=>chooseYear(y)}>{y}</button>)}</div>}
+   {years.length===1?<div className="vehicle-choice-summary"><strong>{year}</strong><span>{t("Only one model year is listed for this catalog entry.")}</span></div>:<div className="vehicle-card-grid year-card-grid">{years.map(y=><button key={y} className={`year-card ${year===y?"selected":""}`} onClick={()=>chooseYear(y)}>{y}</button>)}</div>}
   </div>}
   {model&&year!==null&&availableEngines.length>0&&<div className="vehicle-step" id="vehicle-engine-step">
    <div className="vehicle-step-heading"><div><span className="vehicle-step-kicker">{t("STEP 4")}</span><h2>{t("Choose engine")}</h2></div><p>{t("Engine size in cc")}</p></div>
-   {availableEngines.length===1?<div className="vehicle-choice-summary"><strong>{t(availableEngines[0].label)}</strong><span>{t("Only one verified engine is listed for this model year; it is selected automatically.")}</span></div>:<div className="vehicle-card-grid engine-card-grid">{availableEngines.map((e,i)=><button key={e.code||e.cc+"-"+i} data-global-reveal className={`engine-choice ${engineIndex===i?"selected":""}`} onClick={()=>chooseEngine(i)}><strong>{t(e.label)}</strong><span>{e.cc} cc{e.code?" · "+e.code:""}<br/>{t(e.fuel)} · {e.years[0]}–{e.years[1]}</span></button>)}</div>}
+   {availableEngines.length===1?<div className="vehicle-choice-summary"><strong>{t(availableEngines[0].label)}</strong><span>{t("Only one verified engine is listed for this model year; it is selected automatically.")}</span></div>:<div className="vehicle-card-grid engine-card-grid">{availableEngines.map((e,i)=><button key={e.code||e.cc+"-"+i} className={`engine-choice ${engineIndex===i?"selected":""}`} onClick={()=>chooseEngine(i)}><strong>{t(e.label)}</strong><span>{e.cc} cc{e.code?" · "+e.code:""}<br/>{t(e.fuel)} · {e.years[0]}–{e.years[1]}</span></button>)}</div>}
   </div>}
   {engine&&year!==null&&transmissions.length>1&&<div className="vehicle-step">
    <div className="vehicle-step-heading"><div><span className="vehicle-step-kicker">{t("STEP 5")}</span><h2>{t("Choose transmission")}</h2></div></div>
-   <div className="vehicle-card-grid engine-card-grid">{transmissions.map(x=><button key={x} data-global-reveal className={`engine-choice ${transmission===x?"selected":""}`} onClick={()=>setTransmission(x)}><strong>{t(x)}</strong><span>{t("Select the exact transmission fitted to your vehicle.")}</span></button>)}</div>
+   <div className="vehicle-card-grid engine-card-grid">{transmissions.map(x=><button key={x} className={`engine-choice ${transmission===x?"selected":""}`} onClick={()=>setTransmission(x)}><strong>{t(x)}</strong><span>{t("Select the exact transmission fitted to your vehicle.")}</span></button>)}</div>
   </div>}
   {engine&&year!==null&&trims.length>1&&<div className="vehicle-step">
    <div className="vehicle-step-heading"><div><span className="vehicle-step-kicker">{t("STEP 6")}</span><h2>{t("Choose trim")}</h2></div></div>
-   <div className="vehicle-card-grid engine-card-grid">{trims.map(x=><button key={x} data-global-reveal className={`engine-choice ${trim===x?"selected":""}`} onClick={()=>setTrim(x)}><strong>{t(x)}</strong></button>)}</div>
+   <div className="vehicle-card-grid engine-card-grid">{trims.map(x=><button key={x} className={`engine-choice ${trim===x?"selected":""}`} onClick={()=>setTrim(x)}><strong>{t(x)}</strong></button>)}</div>
   </div>}
   {vehicleComplete&&make&&model&&engine&&year!==null&&<div className="vehicle-choice-summary"><strong>{t("Your selected vehicle")}: {t(make.name)} {t(model.name)} · {year}</strong><span>{t(engine.label)} · {engine.cc} cc · {t(transmission||transmissions[0]||"Transmission not specified")} · {t(trim||trims[0]||"Trim not specified")}</span><small>{t("For safety, confirm the part number and engine code with the seller when the listing does not show complete fitment details.")}</small></div>}
   {vehicleComplete&&<div className="vehicle-step" id="vehicle-parts-step">
