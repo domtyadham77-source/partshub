@@ -18,7 +18,7 @@ export default function VehicleMakeCards({compact=false}:{compact?:boolean}){
   {makes.map((make,index)=>{
    const image=photos[make.id]||photos["chevrolet"];
    const hasModels=!!vehicleCatalog.find(x=>x.id===make.id)?.models.length;
-   return <Link key={make.id} data-scroll-reveal className="vehicle-card make-card" to={`/cars?make=${make.id}`}>
+   return <Link key={make.id} data-global-reveal data-scroll-reveal className="vehicle-card make-card" to={`/cars?make=${make.id}`}>
     <img src={image} alt={t(make.name)+ " vehicle"} loading="lazy"/>
     <span className="vehicle-card-shade"/>
     <span className="vehicle-card-copy"><small>{String(index+1).padStart(2,"0")} / {t("MANUFACTURER")}</small><strong>{t(make.name)}</strong><em>{hasModels?t("Choose a model and year"):t("Verified vehicle data coming soon")}</em></span>
