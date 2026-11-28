@@ -139,7 +139,28 @@ const translations:Record<string,{en:string;ar:string}>={
  "Parts for your vehicle":{en:"Parts for your vehicle",ar:"قطع غيار سيارتك"},
  "No parts listed for this exact vehicle yet":{en:"No parts listed for this exact vehicle yet",ar:"لا توجد قطع معروضة لهذه السيارة بالتحديد حتى الآن"},
  "This space will show seller listings when merchants add compatible parts. No sample or unrelated parts are shown.":{en:"This space will show seller listings when merchants add compatible parts. No sample or unrelated parts are shown.",ar:"ستظهر هنا إعلانات التجار عند إضافة قطع متوافقة. لن نعرض قطعًا تجريبية أو غير مرتبطة بسيارتك."},
- "The vehicle catalogue is currently a verified sample and will expand. Never assume compatibility from displacement alone; check the exact part number, engine code, transmission and production variant.":{en:"The vehicle catalogue is currently a verified sample and will expand. Never assume compatibility from displacement alone; check the exact part number, engine code, transmission and production variant.",ar:"الكتالوج الحالي عينة موثقة وسيتم توسيعه. لا تعتمد على سعة المحرك وحدها؛ راجع رقم القطعة وكود المحرك وناقل الحركة والفئة الإنتاجية بدقة."}
+ "The vehicle catalogue is currently a verified sample and will expand. Never assume compatibility from displacement alone; check the exact part number, engine code, transmission and production variant.":{en:"The vehicle catalogue is currently a verified sample and will expand. Never assume compatibility from displacement alone; check the exact part number, engine code, transmission and production variant.",ar:"الكتالوج الحالي عينة موثقة وسيتم توسيعه. لا تعتمد على سعة المحرك وحدها؛ راجع رقم القطعة وكود المحرك وناقل الحركة والفئة الإنتاجية بدقة."},
+ "PARTS FOR THE EGYPTIAN MARKET":{en:"PARTS FOR THE EGYPTIAN MARKET",ar:"قطع غيار مناسبة للسوق المصري"},
+ "Start with a manufacturer, then choose your exact model, year and engine.":{en:"Start with a manufacturer, then choose your exact model, year and engine.",ar:"ابدأ باختيار الشركة المصنعة، ثم الموديل وسنة الصنع والمحرك بالتحديد."},
+ "Find my vehicle":{en:"Find my vehicle",ar:"اعثر على سيارتي"},
+ "Kia":{en:"Kia",ar:"كيا"},
+ "Nissan":{en:"Nissan",ar:"نيسان"},
+ "Toyota":{en:"Toyota",ar:"تويوتا"},
+ "Mitsubishi":{en:"Mitsubishi",ar:"ميتسوبيشي"},
+ "Renault":{en:"Renault",ar:"رينو"},
+ "Peugeot":{en:"Peugeot",ar:"بيجو"},
+ "Fiat":{en:"Fiat",ar:"فيات"},
+ "Suzuki":{en:"Suzuki",ar:"سوزوكي"},
+ "Škoda":{en:"Škoda",ar:"سكودا"},
+ "Volkswagen":{en:"Volkswagen",ar:"فولكس فاجن"},
+ "MG":{en:"MG",ar:"إم جي"},
+ "Chery":{en:"Chery",ar:"شيري"},
+ "Geely":{en:"Geely",ar:"جيلي"},
+ "BYD":{en:"BYD",ar:"بي واي دي"},
+ "JAC":{en:"JAC",ar:"جاك"},
+ "Isuzu":{en:"Isuzu",ar:"إيسوزو"},
+ "Mercedes-Benz":{en:"Mercedes-Benz",ar:"مرسيدس بنز"}
+
 };
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
