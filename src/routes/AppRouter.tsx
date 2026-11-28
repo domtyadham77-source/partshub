@@ -9,6 +9,7 @@ import FavoritesPage from "../pages/FavoritesPage";
 import MainLayout from "../components/layout/MainLayout";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
+import { useLanguage } from "../contexts/LanguageContext";
 import AdminEntryPage from "../pages/AdminEntryPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -38,7 +39,8 @@ import MerchantOrdersPage from "../pages/MerchantOrdersPage";
 import MerchantProfilePage from "../pages/MerchantProfilePage";
 
 function InfoPage({ title, description, links = [] }: { title: string; description: string; links?: { label: string; to: string }[] }) {
-  return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
+  const { t } = useLanguage();
+  return <MainLayout><section className="route-panel"><Badge>{t("PARTS HUB PREVIEW")}</Badge><h1>{t(title)}</h1><p>{t(description)}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{t(link.label)} <span>↗</span></a>)}</div><p className="route-note">{t("This section is being built. No orders, payments, or account changes are processed here yet.")}</p></section></MainLayout>;
 }
 export default function AppRouter() {
  return <div className="route-app-root"><Routes>
