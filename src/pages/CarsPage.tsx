@@ -17,6 +17,8 @@ export default function CarsPage(){
  const [year,setYear]=useState(model?.years[1]||new Date().getFullYear());
  const [engineIndex,setEngineIndex]=useState(0);
  const engine=model?.engines[engineIndex]||model?.engines[0];
+ const [transmission,setTransmission]=useState(engine?.transmissions[0]||"");
+ const [trim,setTrim]=useState(engine?.trims?.[0]||"Any trim");
  const [query,setQuery]=useState("");
  const [items,setItems]=useState<Product[]>([]);
  const [loading,setLoading]=useState(true);
@@ -44,8 +46,9 @@ export default function CarsPage(){
   for(const p of matching){const key=(p.name+"|"+p.fitment).toLowerCase();const old=groups.get(key);if(!old||p.price<old.price)groups.set(key,p);}
   return [...groups.values()].sort((a,b)=>a.price-b.price);
  },[items,make,model,year,engine,query]);
- function changeMake(value:string){const next=vehicleCatalog.find(x=>x.id===value);setMakeId(value);setModelId(next?.models[0]?.id||"");setYear(next?.models[0]?.years[1]||new Date().getFullYear());setEngineIndex(0);}
- function changeModel(value:string){const next=make?.models.find(x=>x.id===value);setModelId(value);setYear(next?.years[1]||new Date().getFullYear());setEngineIndex(0);}
+ function changeMake(value:string){const next=vehicleCatalog.find(x=>x.id===value);const nextEngine=next?.models[0]?.engines[0];setMakeId(value);setModelId(next?.models[0]?.id||"");setYear(next?.models[0]?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
+ function changeModel(value:string){const next=make?.models.find(x=>x.id===value);const nextEngine=next?.engines[0];setModelId(value);setYear(next?.years[1]||new Date().getFullYear());setEngineIndex(0);setTransmission(nextEngine?.transmissions[0]||"");setTrim(nextEngine?.trims?.[0]||"Any trim");}
+ function changeEngine(value:number){const next= model?.engines[value];setEngineIndex(value);setTransmission(next?.transmissions[0]||"");setTrim(next?.trims?.[0]||"Any trim");}
  return <MainLayout><section className="catalog-route vehicle-catalog">
   <Badge>{t("PARTS HUB VEHICLE FINDER")}</Badge><h1>{t("Choose your vehicle.")}</h1><p>{t("Select make, model, year and engine to narrow down parts.")}</p>
   <div className="vehicle-select-panel">
@@ -53,8 +56,10 @@ export default function CarsPage(){
    <label><span>{t("Model")}</span><select value={modelId} onChange={e=>changeModel(e.target.value)}>{make?.models.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
    <label><span>{t("Model year")}</span><select value={year} onChange={e=>setYear(Number(e.target.value))}>{years.map(y=><option key={y} value={y}>{y}</option>)}</select></label>
    <label><span>{t("Engine")}</span><select value={engineIndex} onChange={e=>changeEngine(Number(e.target.value))}>{model?.engines.map((x,i)=><option key={i} value={i}>{x.label}</option>)}</select></label>
+   <label><span>{t("Transmission")}</span><select value={transmission} onChange={e=>setTransmission(e.target.value)}>{engine?.transmissions.map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+   <label><span>{t("Trim")}</span><select value={trim} onChange={e=>setTrim(e.target.value)}>{(engine?.trims||["Any trim"]).map(x=><option key={x} value={x}>{x}</option>)}</select></label>
   </div>
-  <div className="vehicle-selection-note"><strong>{make?.name} {model?.name} · {year}</strong><span>{engine?.code? t("Engine code")+": "+engine.code:""} {engine?.fuel} · {transmission} · {trim}</span><small>{t("Fitment is market- and variant-specific. Listings without engine code or exact displacement require confirmation before purchase.")}</small></div>
+  <div className="vehicle-selection-note"><strong>{make?.name} {model?.name} · {year}</strong><span>{engine?.code? t("Engine code")+": "+engine.code+" · ":""}{engine?.fuel} · {transmission} · {trim}</span><small>{t("Fitment is market- and variant-specific. Listings without engine code or exact displacement require confirmation before purchase.")}</small></div>
   <div className="catalog-controls"><label className="catalog-search"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("Search parts in this vehicle")} aria-label={t("Search parts in this vehicle")}/></label></div>
   <div className="results-line"><span>{loading?t("Loading listings…"):`${visible.length} ${t("matching listings")}`}</span><span>{t("Price comparison · lowest first")}</span></div>
   {loading?<div className="catalog-state">{t("Loading products…")}</div>:error?<div className="catalog-state catalog-error" role="alert">{error}</div>:<ProductGrid products={visible}/>}
