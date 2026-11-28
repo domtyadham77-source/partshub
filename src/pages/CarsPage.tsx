@@ -39,15 +39,15 @@ export default function CarsPage(){
    // If a listing explicitly specifies displacement or engine code, require an exact match.
    const cc=f.match(/(\d{3,4})\s*cc/i);
    if(cc&&engine&&Math.abs(Number(cc[1])-engine.cc)>0)return false;
-   const litre=f.match(/(\\d+(?:\\.\\d+)?)\\s*(?:l|litre|liter)\\b/i);
+   const litre=f.match(/(\d+(?:\.\d+)?)\s*(?:l|litre|liter)\b/i);
    if(!cc&&litre&&engine&&Math.abs(Number(litre[1])*1000-engine.cc)>30)return false;
    if(engine?.code&&!f.includes(engine.code.toLowerCase()))return false;
    const selectedTransmission=transmission.toLowerCase();
-   if(/\\b(manual|automatic|cvt|dct)\\b/i.test(f)&&/manual|automatic|cvt|dct/.test(selectedTransmission)){
-    const listingTransmission=f.match(/\\b(manual|automatic|cvt|dct)\\b/i)?.[1]?.toLowerCase();
+   if(/\b(manual|automatic|cvt|dct)\b/i.test(f)&&/manual|automatic|cvt|dct/.test(selectedTransmission)){
+    const listingTransmission=f.match(/\b(manual|automatic|cvt|dct)\b/i)?.[1]?.toLowerCase();
     if(listingTransmission&&listingTransmission!==selectedTransmission.match(/manual|automatic|cvt|dct/)?.[0])return false;
    }
-   if(trim&&trim!=="Any trim"&&f.match(/\\b(baseline|modern|topline|ls|lt|ltz)\\b/i)&&!f.includes(trim.toLowerCase()))return false;
+   if(trim&&trim!=="Any trim"&&f.match(/\b(baseline|modern|topline|ls|lt|ltz)\b/i)&&!f.includes(trim.toLowerCase()))return false;
    return true;
   });
   const groups=new Map<string,Product>();
