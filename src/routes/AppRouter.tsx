@@ -5,6 +5,7 @@ import ProductDetailsPage from "../pages/ProductDetailsPage";
 import CartPage from "../pages/CartPage";
 import FavoritesPage from "../pages/FavoritesPage";
 import MainLayout from "../components/layout/MainLayout";
+import Footer from "../components/layout/Footer";
 import NotFoundPage from "../pages/NotFoundPage";
 import Badge from "../components/ui/Badge";
 import LoginPage from "../pages/LoginPage";
@@ -39,7 +40,7 @@ function InfoPage({ title, description, links = [] }: { title: string; descripti
   return <MainLayout><section className="route-panel"><Badge>PARTS HUB PREVIEW</Badge><h1>{title}</h1><p>{description}</p><div className="route-links">{links.map(link => <a key={link.to} href={link.to}>{link.label} <span>↗</span></a>)}</div><p className="route-note">This section is being built. No orders, payments, or account changes are processed here yet.</p></section></MainLayout>;
 }
 export default function AppRouter() {
- return <Routes>
+ return <div className="route-app-root"><Routes>
   <Route path="/" element={<App/>}/>
   <Route path="/cars" element={<CatalogPage initialCategory="Car parts"/>}/>
   <Route path="/motorcycles" element={<CatalogPage initialCategory="Motorcycle parts"/>}/>
@@ -77,5 +78,5 @@ export default function AppRouter() {
   <Route path="/orders/:id" element={<RequireAuth><OrderDetailsPage/></RequireAuth>}/>
   <Route path="/support" element={<RequireAuth><SupportPage/></RequireAuth>}/>
   <Route path="*" element={<MainLayout><NotFoundPage/></MainLayout>}/>
- </Routes>;
+ </Routes><Footer/></div>;
 }
