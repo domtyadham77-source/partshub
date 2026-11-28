@@ -75,3 +75,16 @@ html[dir="rtl"] .language-toggle{direction:rtl}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(8){--reveal-delay:630ms}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(9){--reveal-delay:720ms}
 .vehicle-card-grid>[data-scroll-reveal]:nth-child(10){--reveal-delay:810ms}
+
+
+/* One shared footer at the application level, on every route */
+.route-app-root{min-height:100vh;display:flex;flex-direction:column}
+.route-app-root .app-shell{min-height:unset;flex:1}
+.route-app-root .shared-footer{width:100%;margin-top:auto;padding:22px max(20px,calc((100vw - 1240px)/2));display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 22px;border-top:1px solid var(--border);background:var(--background);color:var(--muted);font-size:11px}
+.route-app-root .shared-footer .brand{flex-shrink:0}
+.route-app-root .shared-footer .footer-policy-links{justify-content:center;gap:8px 18px}
+.route-app-root .shared-footer .footer-policy-links a,.route-app-root .shared-footer .footer-account-links a{font-size:10px;color:var(--muted)}
+.route-app-root .shared-footer .footer-policy-links a:hover,.route-app-root .shared-footer .footer-account-links a:hover{color:var(--orange)}
+.route-app-root .shared-footer .footer-account-links{gap:12px 16px}
+.route-app-root .shared-footer small{font-size:9px;color:var(--muted)}
+@media(max-width:700px){.route-app-root .shared-footer{padding:18px 20px;justify-content:flex-start;gap:13px}.route-app-root .shared-footer .footer-policy-links{justify-content:flex-start;gap:9px 14px}.route-app-root .shared-footer .footer-account-links{gap:10px 14px}.route-app-root .shared-footer small{flex:1 1 100%}}
