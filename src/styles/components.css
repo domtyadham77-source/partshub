@@ -31,3 +31,25 @@ html[dir=rtl] .hamburger-panel{right:auto;left:0}
 @media(max-width:650px){.shared-header{height:66px}.shared-desktop-nav{display:none}.shared-header-actions{gap:6px}.header-icon-button,.hamburger-button{width:35px;height:35px}.hamburger-panel{position:fixed;top:74px;right:14px}html[dir=rtl] .hamburger-panel{right:auto;left:14px}}
 
 .settings-option{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:25px;padding:18px;border:1px solid var(--border);border-radius:12px;background:#202428}.settings-option strong{font-size:13px}.settings-option p{margin:6px 0 0;color:var(--muted);font-size:11px}.detail-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+
+/* Compact marketplace information links and policy pages */
+.footer-policy-links{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 18px}
+.footer-policy-links a{font-size:11px!important;color:var(--muted);transition:color .18s ease}
+.footer-policy-links a:hover{color:var(--orange)}
+.footer-account-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.marketplace-info-page{max-width:900px;margin:0 auto;padding:clamp(24px,5vw,52px) 0 70px}
+.info-page-kicker{display:flex;align-items:center;gap:8px;color:var(--orange);font-size:10px;font-weight:800;letter-spacing:1.7px}
+.marketplace-info-page h1{max-width:820px;font-size:clamp(32px,5vw,58px);line-height:1.12;letter-spacing:-1.6px;margin:20px 0}
+.info-page-intro{max-width:780px;color:var(--muted);font-size:15px;line-height:1.9;margin:0 0 36px}
+.info-page-blocks{display:grid;gap:14px}
+.info-page-block{padding:22px 24px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.info-page-block h2{font-size:17px;margin:0 0 12px}
+.info-page-block p,.info-page-block li{color:var(--muted);font-size:12px;line-height:1.9}
+.info-page-block p{margin:8px 0}
+.info-page-block ul{margin:10px 0;padding-inline-start:22px}
+.info-page-block li{padding:3px 0}
+.info-page-quicklinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:25px}
+.info-page-quicklinks a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--muted);font-size:11px}
+.info-page-quicklinks a:hover{border-color:var(--orange);color:var(--orange)}
+@media(max-width:650px){.footer-policy-links{justify-content:flex-start;gap:9px 14px}.footer-account-links{gap:12px}.marketplace-info-page{padding:28px 0 50px}.info-page-intro{font-size:13px}.info-page-block{padding:18px}.info-page-block h2{font-size:15px}.info-page-block p,.info-page-block li{font-size:11px}}
+html[dir=rtl] .info-page-blocks,html[dir=rtl] .marketplace-info-page{text-align:right}
