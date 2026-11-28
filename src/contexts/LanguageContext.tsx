@@ -22,6 +22,25 @@ const translations:Record<string,{en:string;ar:string}>={
  "Information and policies":{en:"Information and policies",ar:"المعلومات والسياسات"},
  "Developed by Adham":{en:"Developed by Adham",ar:"تطوير أدهم"},
 
+ "BUILT FOR THE ROAD":{en:"BUILT FOR THE ROAD",ar:"مصممة للطريق"},
+ "PARTS · PEOPLE · PERFORMANCE":{en:"PARTS · PEOPLE · PERFORMANCE",ar:"قطع غيار · ناس · أداء"},
+ "QUALITY FIRST":{en:"QUALITY FIRST",ar:"الجودة أولًا"},
+ "01 / PERFORMANCE":{en:"01 / PERFORMANCE",ar:"01 / الأداء"},
+ "02 / EVERYDAY":{en:"02 / EVERYDAY",ar:"02 / الاستخدام اليومي"},
+ "03 / PREMIUM":{en:"03 / PREMIUM",ar:"03 / الفخامة"},
+ "04 / ADVENTURE":{en:"04 / ADVENTURE",ar:"04 / المغامرة"},
+ "05 / COMFORT":{en:"05 / COMFORT",ar:"05 / الراحة"},
+ "06 / COMPACT":{en:"06 / COMPACT",ar:"06 / السيارات الصغيرة"},
+ "07 / STYLE":{en:"07 / STYLE",ar:"07 / التصميم"},
+ "08 / UTILITY":{en:"08 / UTILITY",ar:"08 / الاستخدام العملي"},
+ "09 / FAMILY":{en:"09 / FAMILY",ar:"09 / العائلة"},
+ "10 / NEXT GENERATION":{en:"10 / NEXT GENERATION",ar:"10 / الجيل الجديد"},
+ "PARTNER NETWORK / EG":{en:"PARTNER NETWORK / EG",ar:"شبكة الشركاء / مصر"},
+ "PARTS HUB PREVIEW":{en:"PARTS HUB PREVIEW",ar:"نسخة بارتس هَب التجريبية"},
+ "This section is being built. No orders, payments, or account changes are processed here yet.":{en:"This section is being built. No orders, payments, or account changes are processed here yet.",ar:"نعمل على تجهيز هذا القسم. لا تتم معالجة الطلبات أو المدفوعات أو تغييرات الحساب حاليًا."},
+ "Sell with Parts Hub":{en:"Sell with Parts Hub",ar:"بيع مع بارتس هَب"},
+ "A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management.":{en:"A dedicated seller workspace is planned for merchant onboarding, inventory, pricing, and order management.",ar:"نعمل على تجهيز مساحة خاصة بالتجار للتسجيل وإدارة المخزون والأسعار والطلبات."},
+
 type LanguageContextValue={language:Language;direction:"ltr"|"rtl";setLanguage:(language:Language)=>void;t:(value:string)=>string};
 const LanguageContext=createContext<LanguageContextValue|null>(null);
 export function LanguageProvider({children}:{children:ReactNode}){
