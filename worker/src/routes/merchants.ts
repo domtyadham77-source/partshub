@@ -58,7 +58,7 @@ if(url.pathname.startsWith("/api/merchant/")){
    return json({data:{imageUrl:"/api/images/"+id}},201);
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="GET"){
-   const rows=await env.DB.prepare("SELECT p.*,m.store_name,pi.id AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id LEFT JOIN product_images pi ON pi.product_id=p.id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
+   const rows=await env.DB.prepare("SELECT p.*,m.store_name,(SELECT id FROM product_images WHERE product_id=p.id ORDER BY sort_order,id LIMIT 1) AS image_id FROM products p JOIN merchant_profiles m ON m.id=p.merchant_id WHERE p.merchant_id=? ORDER BY p.created_at DESC LIMIT 100").bind(merchant.id).all<any>();
    return json({data:{items:(rows.results||[]).map(publicProduct)}});
   }
   if(url.pathname==="/api/merchant/products"&&request.method==="POST"){
